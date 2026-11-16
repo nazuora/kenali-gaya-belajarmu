@@ -6,7 +6,7 @@ wajib_login();
 $judul = 'Kuis Gaya Belajar';
 require __DIR__ . '/includes/header.php';
 
-// Ambil daftar pertanyaan beserta pilihan jawabannya dari database
+// Ambil daftar pertanyaan dan pilihan jawabannya dari database
 $pertanyaanList = [];
 $resP = $db->query("SELECT * FROM pertanyaan ORDER BY urutan ASC, id ASC");
 while ($row = $resP->fetch_assoc()) {
@@ -23,24 +23,23 @@ while ($row = $resP->fetch_assoc()) {
 <h1>Kuis Gaya Belajar</h1>
 <p class="sub">Jawablah pertanyaan di bawah ini sesuai dengan kebiasaan belajarmu.</p>
 
+<!-- TAG FORM DIBAWAH INI YANG DITAMBAHKAN AGAR BISA TERHUBUNG KE PROSES-KUIS.PHP -->
 <form action="proses-kuis.php" method="POST">
     <?= csrf_field() ?>
 
     <?php if (empty($pertanyaanList)): ?>
-        <div class="empty">Belum ada pertanyaan kuis yang tersedia. Silakan hubungi admin.</div>
+        <p>Belum ada pertanyaan kuis yang tersedia.</p>
     <?php else: ?>
         <?php foreach ($pertanyaanList as $index => $p): ?>
             <div class="card" style="margin-bottom: 20px;">
                 <p><strong><?= ($index + 1) ?>. <?= e($p['teks']) ?></strong></p>
                 
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                    <?php foreach ($p['pilihan'] as $pil): ?>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="radio" name="jawaban[<?= (int)$p['id'] ?>]" value="<?= (int)$pil['gaya_id'] ?>" required>
-                            <span><?= e($pil['teks']) ?></span>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
+                <?php foreach ($p['pilihan'] as $pil): ?>
+                    <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                        <input type="radio" name="jawaban[<?= (int)$p['id'] ?>]" value="<?= (int)$pil['gaya_id'] ?>" required>
+                        <?= e($pil['teks']) ?>
+                    </label>
+                <?php endforeach; ?>
             </div>
         <?php endforeach; ?>
 
