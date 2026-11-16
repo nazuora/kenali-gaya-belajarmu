@@ -1,155 +1,211 @@
 <?php
+// admin/pertanyaan.php
 require __DIR__ . '/../config/koneksi.php';
 wajib_admin();
 
 $pesan = '';
-$error = '';
-$edit  = ['id' => 0, 'teks' => '', 'j' => [1 => '', 2 => '', 3 => '']];
+$galat = '';
 
-// ===== CREATE, UPDATE, DELETE =====
+// Proses Tambah / Ubah / Hapus Pertanyaan & Jawaban
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
     $aksi = $_POST['aksi'] ?? '';
 
-    if ($aksi === 'hapus') {
-        $id = (int)($_POST['id'] ?? 0);
-        $stmt = $db->prepare('DELETE FROM pertanyaan WHERE id = ?'); // jawaban ikut terhapus (ON DELETE CASCADE)
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $pesan = 'Pertanyaan dihapus.';
-    }
-
     if ($aksi === 'simpan') {
-        $id   = (int)($_POST['id'] ?? 0);
-        $teks = trim($_POST['teks'] ?? '');
-        // gaya_id: 1 = Visual, 2 = Auditori, 3 = Kinestetik
-        $jwb  = [1 => trim($_POST['j1'] ?? ''), 2 => trim($_POST['j2'] ?? ''), 3 => trim($_POST['j3'] ?? '')];
+        $id      = (int)($_POST['id'] ?? 0);
+        $teks    = trim($_POST['teks'] ?? '');
+        $urutan  = (int)($_POST['urutan'] ?? 0);
+        $jawaban = $_POST['jawaban'] ?? []; // Array [gaya_id => teks_jawaban]
 
-        if ($teks === '' || in_array('', $jwb, true)) {
-            $error = 'Isi pertanyaan dan ketiga jawabannya.';
-            $edit  = ['id' => $id, 'teks' => $teks, 'j' => $jwb];   // pertahankan isian
+        if ($teks === '') {
+            $galat = 'Teks pertanyaan tidak boleh kosong.';
         } else {
             $db->begin_transaction();
             try {
                 if ($id > 0) {
-                    // UPDATE
-                    $stmt = $db->prepare('UPDATE pertanyaan SET teks = ? WHERE id = ?');
-                    $stmt->bind_param('si', $teks, $id);
+                    // Update pertanyaan
+                    $stmt = $db->prepare('UPDATE pertanyaan SET teks = ?, urutan = ? WHERE id = ?');
+                    $stmt->bind_param('sii', $teks, $urutan, $id);
                     $stmt->execute();
-                    $stmt = $db->prepare('UPDATE jawaban SET teks = ? WHERE pertanyaan_id = ? AND gaya_id = ?');
-                    foreach ($jwb as $gaya => $t) {
-                        $stmt->bind_param('sii', $t, $id, $gaya);
-                        $stmt->execute();
-                    }
-                    $pesan = 'Pertanyaan diperbarui.';
+
+                    // Hapus jawaban lama lalu masukkan yang baru
+                    $db->query("DELETE FROM jawaban WHERE pertanyaan_id = $id");
                 } else {
-                    // CREATE
-                    $urutan = (int)$db->query('SELECT COALESCE(MAX(urutan), 0) + 1 FROM pertanyaan')->fetch_row()[0];
+                    // Insert pertanyaan baru
                     $stmt = $db->prepare('INSERT INTO pertanyaan (teks, urutan) VALUES (?, ?)');
                     $stmt->bind_param('si', $teks, $urutan);
                     $stmt->execute();
-                    $baru = $db->insert_id;
-                    $stmt = $db->prepare('INSERT INTO jawaban (pertanyaan_id, gaya_id, teks) VALUES (?, ?, ?)');
-                    foreach ($jwb as $gaya => $t) {
-                        $stmt->bind_param('iis', $baru, $gaya, $t);
-                        $stmt->execute();
-                    }
-                    $pesan = 'Pertanyaan ditambahkan.';
+                    $id = $db->insert_id;
                 }
+
+                // Masukkan pilihan jawaban untuk tiap gaya (V, A, K)
+                $stmtJ = $db->prepare('INSERT INTO jawaban (pertanyaan_id, gaya_id, teks) VALUES (?, ?, ?)');
+                foreach ($jawaban as $gaya_id => $teks_jawaban) {
+                    $tJ = trim($teks_jawaban);
+                    $gId = (int)$gaya_id;
+                    if ($tJ !== '' && in_array($gId, [1, 2, 3], true)) {
+                        $stmtJ->bind_param('iis', $id, $gId, $tJ);
+                        $stmtJ->execute();
+                    }
+                }
+
                 $db->commit();
-            } catch (mysqli_sql_exception $ex) {
+                $pesan = 'Pertanyaan berhasil disimpan.';
+            } catch (Exception $e) {
                 $db->rollback();
-                $error = 'Gagal menyimpan. Coba lagi.';
+                $galat = 'Gagal menyimpan data: ' . $e->getMessage();
             }
         }
-    }
-}
-
-// ===== Data untuk formulir ubah =====
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && isset($_GET['ubah'])) {
-    $id = (int)$_GET['ubah'];
-    $stmt = $db->prepare('SELECT id, teks FROM pertanyaan WHERE id = ?');
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    if ($row = $stmt->get_result()->fetch_assoc()) {
-        $edit['id'] = (int)$row['id'];
-        $edit['teks'] = $row['teks'];
-        $stmt = $db->prepare('SELECT gaya_id, teks FROM jawaban WHERE pertanyaan_id = ?');
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        foreach ($stmt->get_result() as $j) {
-            $edit['j'][(int)$j['gaya_id']] = $j['teks'];
+    } elseif ($aksi === 'hapus') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $db->prepare('DELETE FROM pertanyaan WHERE id = ?');
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $pesan = 'Pertanyaan berhasil dihapus.';
         }
     }
 }
-$tampilForm = isset($_GET['tambah']) || ($_SERVER['REQUEST_METHOD'] !== 'POST' && isset($_GET['ubah'])) || $error !== '';
 
-// ===== READ: daftar pertanyaan =====
-$daftar = $db->query('SELECT id, teks FROM pertanyaan ORDER BY urutan, id')->fetch_all(MYSQLI_ASSOC);
+// Ambil semua daftar gaya belajar untuk referensi form jawaban
+$gayaList = [];
+$resGaya = $db->query("SELECT * FROM gaya_belajar ORDER BY id ASC");
+while ($row = $resGaya->fetch_assoc()) {
+    $gayaList[$row['id']] = $row;
+}
 
-$judul = 'Admin: Pertanyaan Kuis';
+// Ambil data jika sedang mode edit
+$editId = (int)($_GET['edit'] ?? 0);
+$editData = null;
+$editJawaban = [];
+if ($editId > 0) {
+    $stmt = $db->prepare("SELECT * FROM pertanyaan WHERE id = ?");
+    $stmt->bind_param('i', $editId);
+    $stmt->execute();
+    $editData = $stmt->get_result()->fetch_assoc();
+
+    if ($editData) {
+        $resJ = $db->prepare("SELECT * FROM jawaban WHERE pertanyaan_id = ?");
+        $resJ->bind_param('i', $editId);
+        $resJ->execute();
+        $resJData = $resJ->get_result();
+        while ($j = $resJData->fetch_assoc()) {
+            $editJawaban[$j['gaya_id']] = $j['teks'];
+        }
+    }
+}
+
+// Ambil semua daftar pertanyaan untuk ditampilkan di tabel
+$pertanyaanList = [];
+$resP = $db->query("SELECT * FROM pertanyaan ORDER BY urutan ASC, id ASC");
+while ($row = $resP->fetch_assoc()) {
+    // Ambil pilihan jawaban tiap pertanyaan
+    $pId = $row['id'];
+    $resJSub = $db->query("SELECT j.*, g.kode FROM jawaban j JOIN gaya_belajar g ON j.gaya_id = g.id WHERE j.pertanyaan_id = $pId");
+    $row['pilihan'] = [];
+    while ($jSub = $resJSub->fetch_assoc()) {
+        $row['pilihan'][$jSub['gaya_id']] = $jSub;
+    }
+    $pertanyaanList[] = $row;
+}
+
+$judul = 'Kelola Pertanyaan Kuis';
 require __DIR__ . '/../includes/header.php';
 ?>
-<div class="narrow" style="max-width:720px">
-  <h1 class="s">Panel admin</h1>
-  <p class="sub">Kelola isi web tanpa mengubah kode. Perubahan langsung tampil di halaman Kuis dan Jenis.</p>
 
-  <div class="seg">
-    <a href="<?= e(url('/admin/pertanyaan.php')) ?>" aria-selected="true">Pertanyaan kuis</a>
-    <a href="<?= e(url('/admin/gaya.php')) ?>" aria-selected="false">Isi gaya belajar</a>
-  </div>
-
-  <div class="actions" style="align-items:center;margin:0 0 12px">
-    <b><?= count($daftar) ?> pertanyaan</b>
-    <a class="btn" href="?tambah=1">+ Tambah pertanyaan</a>
-  </div>
-
-  <?php foreach ($daftar as $no => $p): ?>
-    <div class="arow">
-      <div class="at"><b><?= $no + 1 ?>.</b> <?= e($p['teks']) ?></div>
-      <div class="ab">
-        <a class="btn ghost sm" href="?ubah=<?= (int)$p['id'] ?>">Ubah</a>
-        <form method="post">
-          <?= csrf_field() ?>
-          <input type="hidden" name="aksi" value="hapus">
-          <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
-          <button type="button" class="btn red sm del">Hapus</button>
-        </form>
-      </div>
-    </div>
-  <?php endforeach; ?>
-
-  <div class="msg" role="status"><?= e($pesan) ?></div>
-
-  <?php if ($tampilForm): ?>
-    <section class="card">
-      <h2 style="margin-top:0"><?= $edit['id'] ? 'Ubah pertanyaan' : 'Tambah pertanyaan' ?></h2>
-      <form method="post">
-        <?= csrf_field() ?>
-        <input type="hidden" name="aksi" value="simpan">
-        <input type="hidden" name="id" value="<?= (int)$edit['id'] ?>">
-        <label class="l" for="teks">Pertanyaan</label>
-        <input class="t" id="teks" name="teks" value="<?= e($edit['teks']) ?>" autocomplete="off">
-        <label class="l" for="j1" style="margin-top:8px">Jawaban gaya Visual</label>
-        <input class="t" id="j1" name="j1" value="<?= e($edit['j'][1]) ?>" autocomplete="off">
-        <label class="l" for="j2" style="margin-top:8px">Jawaban gaya Auditori</label>
-        <input class="t" id="j2" name="j2" value="<?= e($edit['j'][2]) ?>" autocomplete="off">
-        <label class="l" for="j3" style="margin-top:8px">Jawaban gaya Kinestetik</label>
-        <input class="t" id="j3" name="j3" value="<?= e($edit['j'][3]) ?>" autocomplete="off">
-        <div class="err" role="alert"><?= e($error) ?></div>
-        <div class="actions" style="justify-content:flex-start">
-          <button class="btn" type="submit">Simpan</button>
-          <a class="btn ghost" href="<?= e(url('/admin/pertanyaan.php')) ?>">Batal</a>
-        </div>
-      </form>
-    </section>
-  <?php endif; ?>
+<!-- Tab navigasi khusus Admin (Hanya Kelola Pertanyaan) -->
+<div class="seg" style="grid-template-columns: 1fr; margin-bottom: 24px;">
+  <a href="<?= e(url('/admin/pertanyaan.php')) ?>" aria-selected="true">Kelola Pertanyaan Kuis</a>
 </div>
-<script>
-  // Hapus: klik dua kali agar tidak terhapus tanpa sengaja
-  document.querySelectorAll('.del').forEach(b => b.onclick = () => {
-    if (b.dataset.sure) { b.closest('form').submit(); }
-    else { b.dataset.sure = 1; b.textContent = 'Klik lagi'; }
-  });
-</script>
+
+<h1>Kelola Pertanyaan Kuis</h1>
+<p class="sub">Tambah, ubah, atau hapus daftar pertanyaan serta pilihan jawaban kuis gaya belajar.</p>
+
+<?php if ($pesan): ?>
+  <div class="card" style="background: var(--green-soft); border-color: var(--ok); color: var(--ok); padding: 12px 18px; margin-bottom: 16px;">
+    <strong><?= e($pesan) ?></strong>
+  </div>
+<?php endif; ?>
+
+<?php if ($galat): ?>
+  <div class="err" style="margin-bottom: 16px;"><?= e($galat) ?></div>
+<?php endif; ?>
+
+<!-- Form Tambah / Edit Pertanyaan -->
+<div class="card" style="margin-bottom: 28px;">
+  <h2 style="margin-top:0"><?= $editData ? 'Ubah Pertanyaan #' . $editData['id'] : 'Tambah Pertanyaan Baru' ?></h2>
+  <form method="POST">
+    <?= csrf_field() ?>
+    <input type="hidden" name="aksi" value="simpan">
+    <input type="hidden" name="id" value="<?= $editData ? (int)$editData['id'] : 0 ?>">
+
+    <div style="margin-bottom: 14px;">
+      <label class="l" for="teks">Teks Pertanyaan</label>
+      <textarea class="t" name="teks" id="teks" rows="2" required placeholder="Tuliskan pertanyaan kuis di sini..."><?= e($editData['teks'] ?? '') ?></textarea>
+    </div>
+
+    <div style="margin-bottom: 18px; max-width: 200px;">
+      <label class="l" for="urutan">Nomor Urutan</label>
+      <input class="t" type="number" name="urutan" id="urutan" value="<?= e($editData['urutan'] ?? count($pertanyaanList) + 1) ?>" required>
+    </div>
+
+    <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Pilihan Jawaban Berdasarkan Gaya Belajar</h3>
+    <p class="hint" style="margin-bottom: 14px;">Isi opsi jawaban yang mencerminkan masing-masing kategori gaya belajar di bawah ini:</p>
+
+    <?php foreach ($gayaList as $gId => $gInfo): ?>
+      <div style="margin-bottom: 12px;">
+        <label class="l" style="display: flex; align-items: center; gap: 6px;">
+          <span class="pill" style="background: <?= $gId == 1 ? 'var(--blue-soft)' : ($gId == 2 ? 'var(--yellow-soft)' : 'var(--green-soft)') ?>; font-size: 0.8rem;">
+            <?= e($gInfo['nama']) ?> (<?= e($gInfo['kode']) ?>)
+          </span>
+        </label>
+        <input class="t" type="text" name="jawaban[<?= $gId ?>]" value="<?= e($editJawaban[$gId] ?? '') ?>" placeholder="Opsi jawaban untuk gaya <?= e($gInfo['nama']) ?>..." required>
+      </div>
+    <?php endforeach; ?>
+
+    <div style="margin-top: 18px; display: flex; gap: 10px;">
+      <button type="submit" class="btn">Simpan Pertanyaan</button>
+      <?php if ($editData): ?>
+        <a href="<?= url('/admin/pertanyaan.php') ?>" class="btn ghost">Batal Edit</a>
+      <?php endif; ?>
+    </div>
+  </form>
+</div>
+
+<!-- Daftar Pertanyaan yang Sudah Ada -->
+<h2>Daftar Pertanyaan (<?= count($pertanyaanList) ?>)</h2>
+<?php if (empty($pertanyaanList)): ?>
+  <div class="empty">Belum ada pertanyaan yang ditambahkan.</div>
+<?php else: ?>
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+    <?php foreach ($pertanyaanList as $p): ?>
+      <div class="card" style="margin-bottom: 0; padding: 18px 22px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+          <div>
+            <span style="font-weight: 900; color: var(--blue); margin-right: 6px;">#<?= (int)$p['urutan'] ?></span>
+            <strong style="font-size: 1.05rem;"><?= e($p['teks']) ?></strong>
+          </div>
+          <div style="display: flex; gap: 6px; flex: none;">
+            <a href="<?= url('/admin/pertanyaan.php?edit=' . (int)$p['id']) ?>" class="btn sm ghost">Ubah</a>
+            <form method="POST" onsubmit="return confirm('Yakin ingin menghapus pertanyaan ini?');" style="display:inline;">
+              <?= csrf_field() ?>
+              <input type="hidden" name="aksi" value="hapus">
+              <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+              <button type="submit" class="btn sm red">Hapus</button>
+            </form>
+          </div>
+        </div>
+
+        <ul style="margin: 8px 0 0 20px; padding: 0; font-size: 0.92rem; color: var(--muted);">
+          <?php foreach ($p['pilihan'] as $pil): ?>
+            <li>
+              <strong style="color: var(--text);"><?= e($pil['kode']) ?>:</strong> <?= e($pil['teks']) ?>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
+
 <?php require __DIR__ . '/../includes/footer.php'; ?>
