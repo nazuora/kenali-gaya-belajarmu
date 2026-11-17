@@ -46,10 +46,10 @@ if ($maxSkor === $totalA) {
     $gayaUtamaId = 3; // Kinestetik
 }
 
-// Simpan ke database tabel hasil_kuis
+// Simpan ke database tabel hasil_kuis (menggunakan NOW() langsung tanpa menyertakan kolom tanggal secara manual)
 $stmt = $db->prepare('
-    INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik, tanggal) 
-    VALUES (?, ?, ?, ?, ?, NOW())
+    INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik) 
+    VALUES (?, ?, ?, ?, ?)
 ');
 $stmt->bind_param('iiiii', $userId, $gayaUtamaId, $persenV, $persenA, $persenK);
 

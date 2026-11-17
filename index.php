@@ -26,15 +26,24 @@ require __DIR__ . '/includes/header.php';
   <div>
     <h1>Temukan cara belajar yang paling pas untukmu.</h1>
     <p class="lead">Jawab pertanyaan seputar situasi sehari-hari. Kamu akan dapat profil gaya belajar dan tips yang bisa langsung dipraktikkan.</p>
-    <div class="links" style="gap:12px"><a href="<?= e(url('/kuis.php')) ?>" class="btn">Mulai kuis</a><a href="<?= e(url('/jenis.php')) ?>" class="btn ghost">Lihat jenis gaya belajar</a></div>
+    <div class="links" style="gap:12px">
+      <a href="<?= e(url('/petunjuk.php')) ?>" class="btn">Mulai Kuis Sekarang</a>
+      <a href="<?= e(url('/jenis.php')) ?>" class="btn ghost">Lihat jenis gaya belajar</a>
+    </div>
   </div>
+
   <?php if ($coba): ?>
     <div class="cobacard" aria-labelledby="judulcoba">
       <h2 id="judulcoba">Coba satu pertanyaan</h2>
       <p><?= e($coba['teks']) ?></p>
-      <?php foreach ($coba['jawaban'] as $j): ?>
-        <button type="button" class="opt <?= e(strtolower($j['kode'])) ?>" data-kode="<?= e($j['kode']) ?>" aria-pressed="false"><?= e($j['teks']) ?></button>
-      <?php endforeach; ?>
+      
+      <!-- Bungkus opsi jawaban dengan container flexbox agar berjejer ke samping -->
+      <div class="coba-opsi-container">
+        <?php foreach ($coba['jawaban'] as $j): ?>
+          <button type="button" class="opt <?= e(strtolower($j['kode'])) ?>" data-kode="<?= e($j['kode']) ?>" aria-pressed="false"><?= e($j['teks']) ?></button>
+        <?php endforeach; ?>
+      </div>
+
       <div id="dres" aria-live="polite"></div>
     </div>
   <?php endif; ?>

@@ -22,7 +22,13 @@ function nav_item(string $href, string $label, bool $aktif): string {
   <div class="links">
     <?= nav_item('/', 'Home', $halaman === 'index.php') ?>
     <?= nav_item('/jenis.php', 'Jenis', $halaman === 'jenis.php') ?>
-    <?= nav_item('/kuis.php', 'Kuis', in_array($halaman, ['kuis.php', 'hasil.php'], true)) ?>
+    
+    <!-- 1. Tombol Petunjuk HANYA akan menyala jika halamannya petunjuk.php -->
+    <?= nav_item('/petunjuk.php', 'Petunjuk', $halaman === 'petunjuk.php') ?>
+    
+    <!-- 2. Tombol Kuis HANYA akan menyala jika halamannya kuis.php atau hasil.php -->
+    <?= nav_item('/petunjuk.php', 'Kuis', in_array($halaman, ['kuis.php', 'hasil.php'], true)) ?>
+    
     <?= nav_item('/riwayat.php', 'Riwayat', $halaman === 'riwayat.php') ?>
     <?php if ($pengguna && $pengguna['role'] === 'admin'): ?>
       <?= nav_item('/admin/pertanyaan.php', 'Admin', in_array($halaman, ['pertanyaan.php', 'gaya.php'], true)) ?>

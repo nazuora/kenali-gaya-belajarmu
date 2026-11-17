@@ -1,5 +1,17 @@
 <?php
-// kuis.php
+session_start();
+
+// Aktifkan laporan error untuk debugging (opsional)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// 1. Cek apakah user sudah melewati halaman petunjuk
+if (!isset($_SESSION['sudah_baca_petunjuk']) || $_SESSION['sudah_baca_petunjuk'] !== true) {
+    header("Location: petunjuk.php");
+    exit;
+}
+
+// 2. Panggil koneksi database
 require __DIR__ . '/config/koneksi.php';
 wajib_login();
 
@@ -50,7 +62,9 @@ require __DIR__ . '/includes/header.php';
       $('count').textContent = (i + 1) + '/' + Q.length;
       const p = (i / Q.length) * 100;
       $('fill').style.width = p + '%';
-      $('pb')->setAttribute('aria-valuenow', Math.round(p)); // Diperbaiki agar aman
+      
+      $('pb').setAttribute('aria-valuenow', Math.round(p)); 
+
       $('opts').innerHTML = '';
       Q[i].jawaban.forEach(j => {
         const b = document.createElement('button');
@@ -69,11 +83,10 @@ require __DIR__ . '/includes/header.php';
     $('next').onclick = () => {
       if (i < Q.length - 1) { i++; renderQ(); return; }
       const f = $('kirim');
-      f.innerHTML = '<?= csrf_field() ?>'; // Bersihkan input lama jika ada
+      f.innerHTML = '<?= csrf_field() ?>'; 
       Q.forEach((q, n) => {
         const h = document.createElement('input');
         h.type = 'hidden'; 
-        // Disesuaikan agar terbaca di proses-kuis.php sebagai jawaban[id_pertanyaan] = gaya_id
         h.name = 'jawaban[' + q.id + ']'; 
         h.value = ans[n];
         f.appendChild(h);

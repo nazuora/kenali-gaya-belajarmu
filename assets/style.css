@@ -213,3 +213,18 @@ a.chipb{display:inline-block;text-decoration:none}
 #dres{min-height:48px;font-weight:700}
 #dres b{display:inline-block;padding:2px 12px;border-radius:999px;color:#2D3142;margin-right:6px}
 #dres b.v{background:var(--blue)}#dres b.a{background:var(--yellow)}#dres b.k{background:var(--green)}
+
+/* ===== Pengaturan tombol di dalam Coba Satu Pertanyaan ===== */
+.coba-opsi-container {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.coba-opsi-container .opt {
+    flex: 1;
+    min-width: 160px;
+    margin-bottom: 0;
+}
+}
