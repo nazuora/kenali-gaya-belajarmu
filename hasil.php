@@ -2,6 +2,15 @@
 // Panggil koneksi database
 require __DIR__ . '/config/koneksi.php';
 
+// Definisi warna konsisten untuk gaya belajar
+if (!defined('WARNA_GAYA')) {
+    define('WARNA_GAYA', [
+        'V' => ['#8b7cf6', '#ede9fe'], // Visual (Ungu / Biru lembut)
+        'A' => ['#f97316', '#ffedd5'], // Auditori (Oranye / Peach)
+        'K' => ['#10b981', '#d1fae5']  // Kinestetik (Hijau Toska / Mint)
+    ]);
+}
+
 $login = !empty($_SESSION['user']);
 $uid   = $login ? (int)$_SESSION['user']['id'] : 0;
 $h     = null;

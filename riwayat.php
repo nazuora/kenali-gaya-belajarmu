@@ -1,6 +1,15 @@
 <?php
 require __DIR__ . '/config/koneksi.php';
 
+// Definisi warna disesuaikan persis dengan 3 titik logo header (Visual, Auditori, Kinestetik)
+if (!defined('WARNA_GAYA')) {
+    define('WARNA_GAYA', [
+        'V' => ['#8b7cf6', '#ede9fe'], // Visual (Ungu / Biru lembut)
+        'A' => ['#f97316', '#ffedd5'], // Auditori (Oranye / Peach)
+        'K' => ['#10b981', '#d1fae5']  // Kinestetik (Hijau Toska / Mint)
+    ]);
+}
+
 // Cek apakah pengguna sudah login atau belum
 $login = !empty($_SESSION['user']);
 $uid   = $login ? (int)$_SESSION['user']['id'] : 0;
