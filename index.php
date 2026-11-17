@@ -1,5 +1,4 @@
 <?php
-<?php
 /* 
   File: index.php
   Keterangan: Halaman utama (beranda) aplikasi "Kenali Gaya Belajarmu". 
