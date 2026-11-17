@@ -125,9 +125,9 @@ require __DIR__ . '/includes/header.php';
   </article>
 <?php endforeach; ?>
 
-<!-- Tombol Navigasi ke Halaman Petunjuk -->
+<!-- Tombol Navigasi ke Halaman Kuis -->
 <p style="margin-top:18px">
-    <a class="btn" href="<?= url('/petunjuk.php') ?>">Cari tahu gaya belajarmu</a>
+    <a class="btn" href="<?= url('/kuis.php') ?>">Cari tahu gaya belajarmu</a>
 </p>
 
 <!-- Skrip JavaScript Sederhana untuk Mengatur Perpindahan Tab -->

@@ -5,33 +5,32 @@
   dan responsif untuk seluruh halaman website.
 */
 
-/* ==========================================
-   1. PENGATURAN DASAR & VARIABEL WARNA
-   ========================================== */
+/* ==================== 1. WARNA ==================== */
+/* Semua warna disimpan di sini, lalu dipanggil dengan var(--nama) */
+
 :root {
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  
-  /* Warna Tema Terang (Light Mode) */
+
   --bg: #FFF9F3;
   --surface: #FFFFFF;
   --text: #3A2F52;
   --muted: #6B6080;
   --line: #EDE3F3;
-  
+
   --blue: #8B7CF0;
   --yellow: #FF9F7A;
   --green: #5CCB9C;
   --err: #C2334D;
   --ok: #23825B;
-  
+
   --blue-soft: #ECE8FF;
   --yellow-soft: #FFE9DE;
   --green-soft: #DDF6EA;
 }
 
-/* Pengaturan Tema Gelap (Dark Mode otomatis dari sistem) */
+/* Mode gelap: dipakai otomatis kalau HP atau laptop memakai mode gelap */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #1E1A2B;
@@ -41,13 +40,14 @@
     --line: #3F3858;
     --err: #FF8DA1;
     --ok: #7FE0B5;
+
     --blue-soft: #342F57;
     --yellow-soft: #4A3340;
     --green-soft: #24443A;
   }
 }
 
-/* Jika tema gelap dipilih secara manual */
+/* Mode gelap yang dipilih manual */
 :root[data-theme="dark"] {
   --bg: #1E1A2B;
   --surface: #2A2540;
@@ -56,10 +56,14 @@
   --line: #3F3858;
   --err: #FF8DA1;
   --ok: #7FE0B5;
+
   --blue-soft: #342F57;
   --yellow-soft: #4A3340;
   --green-soft: #24443A;
 }
+
+
+/* ==================== 2. PENGATURAN DASAR ==================== */
 
 html {
   scroll-padding-top: env(safe-area-inset-top, 0px);
@@ -71,15 +75,16 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--text);
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  font-weight: 800;
-  letter-spacing: -.01em;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
   line-height: 1.6;
-  background-image: radial-gradient(520px 380px at 6% -4%, rgba(139,124,240,.22), transparent 70%), 
-                    radial-gradient(480px 360px at 96% 8%, rgba(255,159,122,.22), transparent 70%), 
-                    radial-gradient(560px 420px at 50% 108%, rgba(92,203,156,.20), transparent 70%);
+
+  /* Latar halaman: warna dasar + tiga lingkaran warna lembut */
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(520px 380px at 6% -4%, rgba(139, 124, 240, .22), transparent 70%),
+    radial-gradient(480px 360px at 96% 8%, rgba(255, 159, 122, .22), transparent 70%),
+    radial-gradient(560px 420px at 50% 108%, rgba(92, 203, 156, .20), transparent 70%);
   background-attachment: fixed;
 }
 
@@ -93,20 +98,36 @@ a {
   outline-offset: 3px;
 }
 
+/* Pembungkus isi halaman */
 .wrap {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
+main.wrap {
+  padding-top: 36px;
+  padding-bottom: 56px;
+}
+
+.view {
+  padding: 36px 0 56px;
+}
+
+/* Pembungkus sempit (kuis, masuk, profil, admin) */
+.narrow {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* Untuk menyembunyikan elemen lewat JavaScript */
 .hidden {
   display: none !important;
 }
 
 
-/* ==========================================
-   2. HEADER, NAVBAR, & MENU UTAMA
-   ========================================== */
+/* ==================== 3. HEADER DAN MENU ==================== */
+
 header {
   border-bottom: 2px solid var(--line);
 }
@@ -121,69 +142,137 @@ nav {
 }
 
 .logo {
-  font-weight: 800;
-  font-size: 1.15rem;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
 }
 
+/* Tiga titik warna di samping logo */
 .dots {
   display: inline-flex;
   gap: 4px;
 }
 
 .dots i {
+  display: block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  display: block;
 }
 
 .links {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .links a {
-  font-weight: 700;
   padding: 6px 14px;
   border-radius: 999px;
+  font-weight: 700;
 }
 
 .links a:hover {
   background: var(--line);
 }
 
+/* Menu yang sedang dibuka */
 .links a[aria-current="page"] {
-  background: var(--blue);
-  color: #fff;
+  background: var(--text);
+  color: var(--bg);
 }
 
 
-/* ==========================================
-   3. TOMBOL (BUTTONS) & FORM INPUT
-   ========================================== */
+/* ==================== 4. JUDUL DAN TEKS ==================== */
+
+h1,
+h2,
+h3 {
+  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2.2rem, 6vw, 3.5rem);
+  line-height: 1.12;
+}
+
+/* Judul yang lebih kecil (di dalam halaman) */
+h1.s {
+  font-size: 1.9rem;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin: 22px 0 8px;
+  font-size: 1.4rem;
+}
+
+.lead {
+  max-width: 48ch;
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.sub {
+  max-width: 56ch;
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+.hint {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+/* Pesan galat (merah) */
+.err {
+  min-height: 1.3em;
+  margin-bottom: 6px;
+  color: var(--err);
+  font-size: .88rem;
+}
+
+/* Pesan berhasil (hijau) */
+.msg {
+  min-height: 1.4em;
+  margin-top: 10px;
+  color: var(--ok);
+  font-weight: 700;
+}
+
+
+/* ==================== 5. TOMBOL ==================== */
+
 .btn {
   display: inline-block;
+  padding: 12px 24px;
   border: 0;
-  cursor: pointer;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
   font: inherit;
   font-weight: 900;
-  padding: 12px 24px;
-  border-radius: 999px;
-  background: var(--blue);
-  color: #fff;
+  cursor: pointer;
 }
 
+/* Tombol dengan garis tepi saja */
 .btn.ghost {
   background: transparent;
   color: var(--text);
   border: 2px solid var(--line);
 }
 
+/* Tombol merah (hapus) */
 .btn.red {
   background: transparent;
   color: var(--err);
@@ -195,6 +284,12 @@ nav {
   color: #fff;
 }
 
+/* Tombol kecil */
+.btn.sm {
+  padding: 6px 14px;
+  font-size: .9rem;
+}
+
 .btn:disabled {
   opacity: .4;
   cursor: not-allowed;
@@ -204,6 +299,7 @@ nav {
   filter: brightness(1.06);
 }
 
+/* Baris tombol (misalnya Kembali dan Lanjut) */
 .actions {
   display: flex;
   justify-content: space-between;
@@ -212,15 +308,34 @@ nav {
   flex-wrap: wrap;
 }
 
+
+/* ==================== 6. KARTU DAN FORM ==================== */
+
+.card {
+  margin-bottom: 16px;
+  padding: 24px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 26px;
+  box-shadow: 0 10px 28px rgba(91, 75, 138, .10);
+}
+
+label.l {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+/* Kotak isian teks */
 input.t {
   width: 100%;
-  font: inherit;
-  color: var(--text);
+  margin-bottom: 4px;
+  padding: 12px 14px;
   background: var(--bg);
+  color: var(--text);
   border: 2px solid var(--line);
   border-radius: 18px;
-  padding: 12px 14px;
-  margin-bottom: 4px;
+  font: inherit;
 }
 
 input.t:focus {
@@ -236,15 +351,16 @@ input.t[aria-invalid="true"] {
   border-color: var(--err);
 }
 
+/* Kotak isian banyak baris */
 textarea.t {
   width: 100%;
-  font: inherit;
-  color: var(--text);
+  margin-bottom: 10px;
+  padding: 12px 14px;
   background: var(--bg);
+  color: var(--text);
   border: 2px solid var(--line);
   border-radius: 18px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  font: inherit;
   resize: vertical;
 }
 
@@ -254,98 +370,46 @@ textarea.t:focus {
 }
 
 
-/* ==========================================
-   4. TIPOGRAFI & KARTU UTAMA
-   ========================================== */
-.view {
-  padding: 36px 0 56px;
-}
+/* ==================== 7. HALAMAN HOME ==================== */
 
-.narrow {
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-h1 {
-  font-size: clamp(2.2rem, 6vw, 3.5rem);
-  line-height: 1.12;
-  margin: 0 0 14px;
-}
-
-h1.s {
-  font-size: 1.9rem;
-}
-
-h2 {
-  font-size: 1.4rem;
-  margin: 22px 0 8px;
-}
-
-.lead {
-  color: var(--muted);
-  font-size: 1.1rem;
-  max-width: 48ch;
-  margin: 0 0 24px;
-}
-
-.sub {
-  color: var(--muted);
-  margin: 0 0 20px;
-  max-width: 56ch;
-}
-
-.card {
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: 26px;
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 10px 28px rgba(91, 75, 138, .10);
-}
-
-.err {
-  color: var(--err);
-  font-size: .88rem;
-  min-height: 1.3em;
-  margin-bottom: 6px;
-}
-
-.msg {
-  font-weight: 700;
-  color: var(--ok);
-  min-height: 1.4em;
-  margin-top: 10px;
-}
-
-label.l {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-
-/* ==========================================
-   5. HALAMAN UTAMA (HOME) & PILIHAN GAYA
-   ========================================== */
 .hero {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 36px;
   align-items: center;
+  gap: 36px;
 }
 
+/* Kartu "Coba satu pertanyaan" */
+.cobacard {
+  padding: 24px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 26px;
+  box-shadow: 0 10px 28px rgba(91, 75, 138, .10);
+}
+
+.cobacard h2 {
+  margin: 0 0 4px;
+}
+
+.cobacard p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+/* Tombol pilihan jawaban */
 .opt {
   display: block;
   width: 100%;
-  text-align: left;
-  font: inherit;
-  font-weight: 700;
-  color: var(--text);
+  margin-bottom: 10px;
+  padding: 13px 16px;
   background: var(--bg);
+  color: var(--text);
   border: 2px solid var(--line);
   border-radius: 18px;
-  padding: 13px 16px;
-  margin-bottom: 10px;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
   cursor: pointer;
   transition: transform .15s, border-color .15s;
 }
@@ -358,10 +422,11 @@ label.l {
   transform: scale(.98);
 }
 
+/* Pilihan yang sedang dipilih */
 .opt[aria-pressed="true"] {
   border-color: var(--blue);
-  background: var(--blue-soft);
   border-width: 3px;
+  background: var(--blue-soft);
 }
 
 .opt.v[aria-pressed="true"] {
@@ -379,6 +444,23 @@ label.l {
   background: var(--green-soft);
 }
 
+/* Versi lain dari pilihan (dipakai di file demo) */
+.opt.dv[aria-pressed="true"] {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.opt.da[aria-pressed="true"] {
+  border-color: var(--yellow);
+  background: var(--yellow-soft);
+}
+
+.opt.dk[aria-pressed="true"] {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+
+/* Hasil dari pertanyaan percobaan */
 #dres {
   min-height: 48px;
   font-weight: 700;
@@ -386,47 +468,111 @@ label.l {
 
 #dres b {
   display: inline-block;
+  margin-right: 6px;
   padding: 2px 12px;
   border-radius: 999px;
   color: #2D3142;
-  margin-right: 6px;
 }
 
-#dres b.v { background: var(--blue); }
-#dres b.a { background: var(--yellow); }
-#dres b.k { background: var(--green); }
+#dres b.v {
+  background: var(--blue);
+}
 
-.types {
+#dres b.a {
+  background: var(--yellow);
+}
+
+#dres b.k {
+  background: var(--green);
+}
+
+/* Tiga maskot (Visual, Auditori, Kinestetik) */
+.trio {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.mas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  color: var(--text);
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mas.v {
+  --c: var(--blue);
+  --s: var(--blue-soft);
+}
+
+.mas.a {
+  --c: var(--yellow);
+  --s: var(--yellow-soft);
+}
+
+.mas.k {
+  --c: var(--green);
+  --s: var(--green-soft);
+}
+
+/* Lingkaran tempat gambar maskot */
+.mi {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 8px;
+  place-items: center;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: var(--s);
+  transition: transform .2s, box-shadow .2s;
 }
 
-.type {
-  border-radius: 26px;
-  padding: 22px;
+.mi svg {
+  width: 62px;
+  height: 62px;
 }
 
-.type.v { background: var(--blue-soft); }
-.type.a { background: var(--yellow-soft); }
-.type.k { background: var(--green-soft); }
-
-.type svg {
-  width: 52px;
-  height: 52px;
+.mas:hover .mi {
+  transform: translateY(-4px) rotate(-5deg);
 }
 
-.type h3 {
-  margin: 4px 0 4px;
-  font-size: 1.5rem;
+.mas[aria-pressed="true"] .mi {
+  box-shadow: 0 0 0 5px var(--c);
 }
 
-.type p {
-  margin: 0;
-  color: var(--muted);
+/* Kotak keterangan di bawah maskot */
+.trioNote {
+  max-width: 460px;
+  margin: 20px auto 0;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 2px dashed var(--line);
+  border-radius: 22px;
+  font-weight: 700;
+  text-align: center;
 }
 
+.trioNote.v {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+.trioNote.a {
+  background: var(--yellow-soft);
+  border-color: var(--yellow);
+}
+
+.trioNote.k {
+  background: var(--green-soft);
+  border-color: var(--green);
+}
+
+/* Cara kerja (daftar langkah bernomor) */
 .steps {
   display: grid;
   grid-template-columns: 1fr;
@@ -439,28 +585,34 @@ label.l {
 }
 
 .steps li {
-  counter-increment: s;
-  background: transparent;
-  padding: 0 0 20px 52px;
   position: relative;
+  padding: 0 0 20px 52px;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  counter-increment: s;
 }
 
+/* Lingkaran nomor */
 .steps li::before {
   content: counter(s);
+  position: absolute;
+  left: 0;
+  top: 0;
   display: grid;
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  margin-bottom: 8px;
   background: var(--blue);
   color: #fff;
+  border-radius: 50%;
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 900;
-  position: absolute;
-  left: 0;
-  top: 0;
 }
 
+/* Garis titik-titik antar nomor */
 .steps li::after {
   content: "";
   position: absolute;
@@ -484,9 +636,9 @@ label.l {
 }
 
 
-/* ==========================================
-   6. HALAMAN JENIS GAYA BELAJAR
-   ========================================== */
+/* ==================== 8. HALAMAN JENIS ==================== */
+
+/* Tiga tombol maskot di bagian atas */
 .tabs {
   display: grid;
   grid-template-columns: repeat(3, auto);
@@ -496,23 +648,40 @@ label.l {
 }
 
 .tabs button {
-  font: inherit;
-  font-weight: 700;
-  color: var(--text);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 0;
+  background: none;
+  color: var(--text);
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabs button[data-k="v"] {
+  --c: var(--blue);
+  --s: var(--blue-soft);
+}
+
+.tabs button[data-k="a"] {
+  --c: var(--yellow);
+  --s: var(--yellow-soft);
+}
+
+.tabs button[data-k="k"] {
+  --c: var(--green);
+  --s: var(--green-soft);
 }
 
 .tabs svg {
   width: 84px;
   height: 84px;
   padding: 20px;
+  background: var(--s);
   border-radius: 50%;
   transition: transform .2s;
 }
@@ -521,34 +690,147 @@ label.l {
   transform: rotate(-5deg);
 }
 
-.tabs button[data-k="v"] { --c: var(--blue); --s: var(--blue-soft); }
-.tabs button[data-k="a"] { --c: var(--yellow); --s: var(--yellow-soft); }
-.tabs button[data-k="k"] { --c: var(--green); --s: var(--green-soft); }
-
-.tabs button svg {
-  background: var(--s);
-}
-
+/* Maskot yang sedang dipilih diberi lingkaran warna */
 .tabs button[aria-selected="true"] svg {
   box-shadow: 0 0 0 5px var(--c);
 }
 
+/* Panel isi tiap gaya belajar */
 .panel {
-  border-radius: 26px;
   padding: 24px;
+  border-radius: 26px;
 }
 
-.panel.v { background: var(--blue-soft); }
-.panel.a { background: var(--yellow-soft); }
-.panel.k { background: var(--green-soft); }
+.panel.v {
+  background: var(--blue-soft);
+}
+
+.panel.a {
+  background: var(--yellow-soft);
+}
+
+.panel.k {
+  background: var(--green-soft);
+}
 
 .panel h2 {
-  font-size: 2.1rem;
   margin: 0 0 6px;
+  font-size: 2.1rem;
 }
 
 .panel > p {
   margin: 0 0 16px;
+}
+
+/* Kotak penjelasan (gelembung) */
+.bubble {
+  margin-bottom: 6px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-radius: 22px;
+}
+
+.bubble h2 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+}
+
+.bubble p {
+  margin: 0;
+}
+
+/* Judul kecil di dalam panel */
+.sec {
+  margin: 18px 0 8px;
+  font-size: 1.2rem;
+}
+
+/* Daftar ciri-ciri (bentuk pil) */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chips span {
+  padding: 6px 14px;
+  background: var(--surface);
+  border-radius: 999px;
+  font-size: .92rem;
+  font-weight: 700;
+}
+
+/* Kertas catatan berisi tips */
+.notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.note {
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: 8px 8px 18px 8px;
+  box-shadow: 0 8px 16px rgba(58, 47, 82, .12);
+  font-weight: 700;
+}
+
+/* Kertas dibuat sedikit miring supaya terlihat seperti tempelan */
+.note.n0 {
+  transform: rotate(-1.5deg);
+}
+
+.note.n1 {
+  transform: rotate(1deg);
+}
+
+.note.n2 {
+  transform: rotate(-.6deg);
+}
+
+.bd {
+  margin: 16px 0 0;
+  color: var(--muted);
+}
+
+/* Bagian di bawah ini dipakai oleh file demo */
+.types {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.type {
+  padding: 22px;
+  border-radius: 26px;
+}
+
+.type.v {
+  background: var(--blue-soft);
+}
+
+.type.a {
+  background: var(--yellow-soft);
+}
+
+.type.k {
+  background: var(--green-soft);
+}
+
+.type svg {
+  width: 52px;
+  height: 52px;
+}
+
+.type h3 {
+  margin: 4px 0 4px;
+  font-size: 1.5rem;
+}
+
+.type p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .grid {
@@ -558,9 +840,9 @@ label.l {
 }
 
 .box {
+  padding: 16px;
   background: var(--surface);
   border-radius: 26px;
-  padding: 16px;
 }
 
 .box h3 {
@@ -582,9 +864,17 @@ label.l {
 }
 
 
-/* ==========================================
-   7. HALAMAN KUIS & HASIL
-   ========================================== */
+/* ==================== 9. HALAMAN KUIS DAN HASIL ==================== */
+
+/* Tulisan "Kuis" dan nomor soal (misalnya 4/6) */
+.qtop {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 900;
+}
+
+/* Bilah kemajuan kuis */
 .bar {
   height: 12px;
   background: var(--line);
@@ -593,24 +883,18 @@ label.l {
 }
 
 .bar > div {
-  height: 100%;
   width: 0;
-  border-radius: 999px;
+  height: 100%;
   background: linear-gradient(90deg, var(--blue), var(--yellow), var(--green));
+  border-radius: 999px;
   transition: width .3s;
 }
 
-.qtop {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 900;
-  margin-bottom: 8px;
-}
-
+/* Kotak gaya belajar utama di halaman hasil */
 .badge {
-  border-radius: 26px;
-  padding: 20px;
   margin-bottom: 18px;
+  padding: 20px;
+  border-radius: 26px;
 }
 
 .badge h1 {
@@ -623,6 +907,7 @@ label.l {
   margin: 0;
 }
 
+/* Baris persentase (Visual, Auditori, Kinestetik) */
 .row {
   margin-bottom: 12px;
 }
@@ -630,8 +915,8 @@ label.l {
 .lab {
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
   margin-bottom: 3px;
+  font-weight: 700;
 }
 
 .track {
@@ -646,6 +931,7 @@ label.l {
   border-radius: 999px;
 }
 
+/* Daftar tips belajar */
 ul.tips {
   margin: 0;
   padding-left: 20px;
@@ -655,44 +941,39 @@ ul.tips li {
   margin-bottom: 6px;
 }
 
+/* Gambar kartu hasil */
 #out {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
-  border-radius: 26px;
-  border: 2px solid var(--line);
   margin-bottom: 8px;
-}
-
-.hint {
-  color: var(--muted);
-  font-size: .92rem;
-  margin: 0 0 6px;
+  border: 2px solid var(--line);
+  border-radius: 26px;
 }
 
 
-/* ==========================================
-   8. HALAMAN RIWAYAT & AKUN
-   ========================================== */
+/* ==================== 10. HALAMAN RIWAYAT ==================== */
+
 .item {
+  margin-bottom: 12px;
   background: var(--surface);
   border: 2px solid var(--line);
   border-radius: 26px;
-  margin-bottom: 12px;
-  overflow: hidden;
   box-shadow: 0 10px 28px rgba(91, 75, 138, .10);
+  overflow: hidden;
 }
 
+/* Baris yang bisa diklik untuk membuka detail */
 .head {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
   width: 100%;
+  padding: 14px 16px;
   background: none;
+  color: inherit;
   border: 0;
   font: inherit;
-  color: inherit;
   text-align: left;
   cursor: pointer;
 }
@@ -700,8 +981,8 @@ ul.tips li {
 .pill {
   padding: 2px 12px;
   border-radius: 999px;
-  font-weight: 900;
   color: #2D3142;
+  font-weight: 900;
   white-space: nowrap;
 }
 
@@ -710,6 +991,7 @@ ul.tips li {
   color: var(--muted);
 }
 
+/* Tanda panah, berputar saat detail dibuka */
 .chev {
   transition: transform .2s;
 }
@@ -726,56 +1008,74 @@ ul.tips li {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: .9rem;
-  color: var(--muted);
   margin-top: 6px;
+  color: var(--muted);
+  font-size: .9rem;
 }
 
 .legend i {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
   margin-right: 5px;
+  border-radius: 50%;
 }
 
+/* Tampilan saat belum ada data */
 .empty {
-  text-align: center;
   padding: 32px 16px;
   background: var(--surface);
   border: 2px dashed var(--line);
   border-radius: 26px;
+  text-align: center;
 }
 
+
+/* ==================== 11. HALAMAN MASUK, DAFTAR, PROFIL ==================== */
+
+/* Tombol pilihan Masuk / Daftar */
 .seg {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  margin-bottom: 18px;
+  padding: 4px;
   background: var(--bg);
   border: 2px solid var(--line);
   border-radius: 999px;
-  padding: 4px;
-  margin-bottom: 18px;
 }
 
-.seg button, .seg a {
-  border: 0;
+.seg button {
+  padding: 10px;
   background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-radius: 999px;
   font: inherit;
   font-weight: 900;
-  color: var(--muted);
-  padding: 10px;
-  border-radius: 999px;
   cursor: pointer;
-  display: block;
-  text-align: center;
-  text-decoration: none;
 }
 
-.seg button[aria-selected="true"], .seg a[aria-selected="true"] {
+.seg button[aria-selected="true"] {
   background: var(--text);
   color: var(--bg);
 }
 
+.seg a {
+  display: block;
+  padding: 10px;
+  color: var(--muted);
+  border-radius: 999px;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+}
+
+.seg a[aria-selected="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Bagian foto dan nama di halaman profil */
 .who {
   display: flex;
   align-items: center;
@@ -784,17 +1084,17 @@ ul.tips li {
 }
 
 .ava {
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
-  background: var(--blue-soft);
-  border: 4px solid var(--blue);
   display: grid;
   place-items: center;
+  flex: none;
+  width: 84px;
+  height: 84px;
+  background: var(--blue-soft);
+  border: 4px solid var(--blue);
+  border-radius: 50%;
   font-size: 2rem;
   font-weight: 900;
   overflow: hidden;
-  flex: none;
 }
 
 .ava img {
@@ -803,18 +1103,19 @@ ul.tips li {
   object-fit: cover;
 }
 
+/* Tombol "Ganti foto" (kotak pilih file disembunyikan) */
 .file {
-  font-weight: 900;
-  color: var(--blue);
-  cursor: pointer;
   display: inline-block;
+  color: var(--blue);
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .file input {
   position: absolute;
-  opacity: 0;
   width: 1px;
   height: 1px;
+  opacity: 0;
 }
 
 .file:focus-within {
@@ -823,13 +1124,14 @@ ul.tips li {
   border-radius: 6px;
 }
 
+/* Kartu hapus akun (merah) */
 .danger {
   border-color: var(--err);
 }
 
 .danger h2 {
-  color: var(--err);
   margin: 0 0 6px;
+  color: var(--err);
 }
 
 .danger p {
@@ -837,20 +1139,56 @@ ul.tips li {
   color: var(--muted);
 }
 
-footer {
-  border-top: 2px solid var(--line);
-  padding: 20px 0;
-  color: var(--muted);
-  font-size: .9rem;
+
+/* ==================== 12. HALAMAN ADMIN ==================== */
+
+/* Satu baris pertanyaan */
+.arow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 18px;
 }
 
+.arow .at {
+  flex: 1;
+  min-width: 0;
+}
 
-/* ==========================================
-   9. TAMBAHAN KOMPONEN KHUSUS PHP & KUIS
-   ========================================== */
-main.wrap {
-  padding-top: 36px;
-  padding-bottom: 56px;
+.arow .ab {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+/* Pilihan gaya belajar (Visual, Auditori, Kinestetik) */
+.chipsel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chipb {
+  padding: 6px 16px;
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chipb[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 
 a.chipb {
@@ -858,45 +1196,23 @@ a.chipb {
   text-decoration: none;
 }
 
-.cobacard {
-  background: var(--surface);
-  border: 2px solid var(--line);
-  border-radius: 26px;
-  padding: 24px;
-  box-shadow: 0 10px 28px rgba(91, 75, 138, .10);
-}
 
-.cobacard h2 {
-  margin: 0 0 4px;
-}
+/* ==================== 13. FOOTER ==================== */
 
-.cobacard p {
+footer {
+  padding: 20px 0;
+  border-top: 2px solid var(--line);
   color: var(--muted);
-  margin: 0 0 12px;
-}
-
-.coba-opsi-container {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.coba-opsi-container .opt {
-  flex: 1;
-  min-width: 160px;
-  margin-bottom: 0;
+  font-size: .9rem;
 }
 
 
-/* ==========================================
-   10. MEDIA QUERIES (RESPONSIF LAYAR HP)
-   ========================================== */
+/* ==================== 14. LAYAR KECIL (HP) ==================== */
+
 @media (max-width: 760px) {
-  .hero, .grid, .types {
-    grid-template-columns: 1fr;
-  }
-  .steps {
+  .hero,
+  .grid,
+  .types {
     grid-template-columns: 1fr;
   }
 }
@@ -906,11 +1222,13 @@ a.chipb {
     flex-direction: column;
     align-items: stretch;
   }
+
   .arow .ab {
     justify-content: flex-end;
   }
 }
 
+/* Matikan animasi untuk pengguna yang memilih gerakan dikurangi */
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

@@ -1,5 +1,4 @@
 <?php
-<?php
 /* 
   File: masuk.php
   Keterangan: Halaman pendaftaran sudah digabung ke dalam halaman masuk 
