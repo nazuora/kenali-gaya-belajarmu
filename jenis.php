@@ -1,4 +1,11 @@
 <?php
+/* 
+  File: jenis.php
+  Keterangan: Halaman untuk menampilkan informasi jenis gaya belajar 
+  (Visual, Auditori, Kinestetik) beserta ciri-ciri dan tips belajarnya 
+  dalam bentuk tab interaktif yang ramah pengguna.
+*/
+
 // Memanggil file koneksi database (jika diperlukan) dan fungsi ikon
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/includes/ikon.php';

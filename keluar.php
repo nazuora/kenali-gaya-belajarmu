@@ -1,4 +1,11 @@
 <?php
+/* 
+  File: keluar.php
+  Keterangan: Berfungsi untuk mengakhiri sesi login pengguna (logout).
+  File ini akan menghapus semua data sesi yang tersimpan, 
+  kemudian mengalihkan pengunjung kembali ke halaman utama.
+*/
+
 // Memuat file koneksi database dan fungsi bantuan (seperti fungsi url())
 require __DIR__ . '/config/koneksi.php';
 

@@ -1,4 +1,10 @@
 <?php
+/* 
+  File: proses-riwayat.php
+  Keterangan: Menangani proses backend untuk pengelolaan riwayat kuis pengguna 
+  (seperti penghapusan data riwayat secara aman dengan validasi sesi dan CSRF).
+*/
+
 require __DIR__ . '/config/koneksi.php';
 
 // Definisi warna disesuaikan persis dengan 3 titik logo header (Visual, Auditori, Kinestetik)

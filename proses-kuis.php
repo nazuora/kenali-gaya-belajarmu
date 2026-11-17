@@ -1,4 +1,11 @@
 <?php
+/* 
+  File: proses-kuis.php
+  Keterangan: File ini bertugas untuk memproses jawaban pilihan kuis yang 
+  dikirimkan oleh pengguna, menghitung persentase skor masing-masing gaya belajar, 
+  menentukan gaya belajar utama, lalu menyimpan hasilnya ke dalam database.
+*/
+
 // Mulai sesi jika belum aktif
 session_start();
 include "config/koneksi.php"; // Menggunakan include standar mahasiswa

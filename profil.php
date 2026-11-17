@@ -1,4 +1,10 @@
 <?php
+/* 
+  File: profil.php
+  Keterangan: Halaman untuk menampilkan dan mengelola informasi profil 
+  serta pengaturan akun pengguna yang sedang masuk.
+*/
+
 // Memuat file koneksi database dan fungsi bantuan lainnya
 require __DIR__ . '/config/koneksi.php';
 

@@ -1,4 +1,12 @@
 <?php
+<?php
+/* 
+  File: index.php
+  Keterangan: Halaman utama (beranda) aplikasi "Kenali Gaya Belajarmu". 
+  Berisi sambutan, informasi singkat mengenai jenis gaya belajar, 
+  serta tombol navigasi untuk memulai kuis atau masuk ke akun.
+*/
+
 // Memanggil file koneksi database dan ikon
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/includes/ikon.php';

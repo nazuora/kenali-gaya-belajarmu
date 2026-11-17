@@ -1,4 +1,14 @@
 <?php
+/*
+  File: includes/ikon.php
+  Fungsi: Untuk menampilkan ikon maskot gaya belajar.
+  Cara pakai: echo ikon('V'); 
+  Keterangan kode huruf: 
+    - V = Visual
+    - A = Auditori
+    - K = Kinestetik
+*/
+
 function ikon($kode) {
     // Ubah huruf menjadi kapital agar tidak error jika diinput huruf kecil
     $kode_huruf = strtoupper($kode);

@@ -1,4 +1,10 @@
 <?php
+/* 
+  File: petunjuk.php
+  Keterangan: Halaman petunjuk pengerjaan kuis yang memberikan panduan 
+  kepada pengguna sebelum mereka mulai menjawab pertanyaan gaya belajar.
+*/
+
 // Memulai sesi PHP untuk menyimpan status aktivitas pengguna
 session_start();
 

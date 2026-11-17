@@ -1,4 +1,12 @@
 <?php
+<?php
+/* 
+  File: masuk.php
+  Keterangan: Halaman pendaftaran sudah digabung ke dalam halaman masuk 
+  dengan sistem tab. File ini bertugas menangani proses masuk maupun daftar 
+  akun pengguna secara dinamis.
+*/
+
 // Memulai sesi untuk mengecek status login pengguna
 session_start();
 

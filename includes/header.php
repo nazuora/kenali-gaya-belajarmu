@@ -1,4 +1,10 @@
 <?php
+/*
+  File: includes/header.php
+  Keterangan: Bagian kepala (header) dan menu navigasi atas yang 
+  akan muncul di setiap halaman website.
+*/
+
 // Ambil nama file halaman yang sedang dibuka saat ini
 $halaman_aktif = basename($_SERVER['SCRIPT_NAME']);
 

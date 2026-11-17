@@ -1,4 +1,11 @@
 <?php
+/* 
+  File: daftar.php
+  Keterangan: Halaman pendaftaran sudah digabung ke dalam halaman masuk 
+  dengan sistem tab. File ini bertugas untuk mengalihkan pengunjung 
+  secara otomatis ke halaman masuk pada tab daftar.
+*/
+
 // 1. Panggil file koneksi database terlebih dahulu
 require __DIR__ . '/config/koneksi.php';
 

@@ -1,4 +1,12 @@
 <?php
+/* 
+  File: kuis.php
+  Keterangan: Halaman utama pengerjaan kuis gaya belajar. File ini memuat 
+  pertanyaan-pertanyaan interaktif untuk mengukur kecenderungan tipe 
+  Visual, Auditori, dan Kinestetik pengguna, serta memproses hasilnya 
+  ke dalam database.
+*/
+
 // Memulai sesi untuk memeriksa status login dan petunjuk
 session_start();
 

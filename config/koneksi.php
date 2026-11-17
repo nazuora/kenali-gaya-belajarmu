@@ -1,4 +1,11 @@
 <?php
+/*
+  File: config/koneksi.php
+  Keterangan: File utama untuk menghubungkan website ke database MySQL, 
+  mengatur sesi, serta menyediakan fungsi-fungsi bantu yang sering dipakai.
+  * Wajib dipanggil di setiap awal halaman PHP.
+*/
+
 // ==========================================
 // 1. PENGATURAN KONEKSI DATABASE
 // ==========================================
