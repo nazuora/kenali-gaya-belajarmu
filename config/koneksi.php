@@ -1,72 +1,94 @@
 <?php
-// config/koneksi.php — dipanggil di awal SETIAP halaman PHP:
-//   require __DIR__ . '/config/koneksi.php';      (dari folder admin: '/../config/koneksi.php')
+// ==========================================
+// 1. PENGATURAN KONEKSI DATABASE
+// ==========================================
+$host     = "localhost";
+$username = "root";
+$password = "";
+$database = "kenali_gaya_belajar";
 
-// Sesuaikan dengan pengaturan XAMPP/Laragon kamu
-const DB_HOST = 'localhost';
-const DB_USER = 'root';
-const DB_PASS = '';
-const DB_NAME = 'kenali_gaya_belajar';
+// Membuat koneksi ke database MySQL menggunakan MySQLi biasa
+$db = mysqli_connect($host, $username, $password, $database);
 
-// Awalan URL otomatis, supaya tautan tetap benar di akar server maupun di subfolder.
-//   http://localhost/          -> ''
-//   http://localhost/kenali/   -> '/kenali'
-$akarProyek = str_replace('\\', '/', (string)realpath(__DIR__ . '/..'));
-$dr = $_SERVER['DOCUMENT_ROOT'] ?? '';
-$akarServer = $dr !== '' ? str_replace('\\', '/', rtrim((string)realpath($dr), '/\\')) : '';
-define('BASE_URL', ($akarServer !== '' && stripos($akarProyek, $akarServer) === 0) ? (string)substr($akarProyek, strlen($akarServer)) : '');
-
-// Buat alamat dari path yang diawali "/" , contoh: url('/masuk.php')
-function url(string $path): string {
-    return BASE_URL . $path;
+// Cek apakah koneksi berhasil atau gagal
+if (!$db) {
+    // Jika gagal, hentikan program dan tampilkan pesan sederhana
+    die("Koneksi ke database gagal: " . mysqli_connect_error());
 }
 
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-try {
-    $db = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $db->set_charset('utf8mb4');
-} catch (mysqli_sql_exception $e) {
-    http_response_code(500);
-    exit('Koneksi database gagal. Periksa pengaturan di config/koneksi.php.');
+// Atur format karakter ke UTF-8 agar huruf/simbol tidak berantakan
+mysqli_set_charset($db, "utf8mb4");
+
+
+// ==========================================
+// 2. PENGATURAN URL DASAR (BASE URL)
+// ==========================================
+/* 
+  Catatan: Sesuaikan nama folder project kamu di dalam htdocs XAMPP.
+  Jika project ditaruh di dalam folder "kenali-gaya-belajarmu", maka tulis seperti di bawah.
+*/
+define('BASE_URL', 'http://localhost/kenali-gaya-belajarmu');
+
+// Fungsi bantu untuk mempermudah pembuatan link halaman
+function url($jalur) {
+    return BASE_URL . $jalur;
 }
 
+
+// ==========================================
+// 3. PENGATURAN SESI (SESSION)
+// ==========================================
+// Menyalakan sesi untuk mengingat data login pengguna
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Escape output supaya aman dari XSS. Pakai fungsi e() setiap menampilkan data ke HTML.
-function e(?string $s): string {
-    return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+
+// ==========================================
+// 4. FUNGSI PENGAMANAN (KEAMANAN DATA & XSS)
+// ==========================================
+
+// Fungsi untuk membersihkan teks agar aman dari serangan kode berbahaya (XSS)
+function e($teks) {
+    if ($teks === null) {
+        return '';
+    }
+    return htmlspecialchars($teks, ENT_QUOTES, 'UTF-8');
 }
 
-// Wajib login
-function wajib_login(): void {
-    if (empty($_SESSION['user'])) {
+// Fungsi untuk mengecek apakah pengguna sudah login atau belum
+function wajib_login() {
+    if (!isset($_SESSION['user'])) {
+        // Jika belum login, tendang ke halaman masuk
         header('Location: ' . url('/masuk.php'));
         exit;
     }
 }
 
-// Wajib admin
-function wajib_admin(): void {
-    wajib_login();
-    if ($_SESSION['user']['role'] !== 'admin') {
-        http_response_code(403);
-        exit('Halaman ini hanya untuk admin.');
+// Fungsi untuk mengecek apakah yang login adalah admin
+function wajib_admin() {
+    wajib_login(); // Pastikan login dulu
+    
+    // Cek rolenya apakah admin
+    if ($_SESSION['user']['role'] != 'admin') {
+        echo "Akses ditolak! Halaman ini khusus untuk Admin.";
+        exit;
     }
 }
 
-// Perlindungan CSRF untuk form POST
-function csrf_token(): string {
+// Token Keamanan Form (CSRF Token) untuk mencegah pengiriman form ilegal
+function csrf_token() {
     if (empty($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
     return $_SESSION['csrf'];
 }
-function csrf_field(): string {
+
+function csrf_field() {
     return '<input type="hidden" name="csrf" value="' . e(csrf_token()) . '">';
 }
-function csrf_periksa(): void {
+
+function csrf_periksa() {
     $kirim = $_POST['csrf'] ?? '';
     if (!hash_equals($_SESSION['csrf'] ?? '', $kirim)) {
         http_response_code(400);
@@ -75,49 +97,28 @@ function csrf_periksa(): void {
 }
 
 
-// Warna tiap gaya belajar: [warna utama, warna latar lembut]
-const WARNA_GAYA = [
-    'V' => ['#8B7CF0', '#ECE8FF'],
-    'A' => ['#FF9F7A', '#FFE9DE'],
-    'K' => ['#5CCB9C', '#DDF6EA'],
-];
+// ==========================================
+// 5. FUNGSI PENDUKUNG LAINNYA
+// ==========================================
 
-// Simpan data pengguna ke session setelah daftar atau masuk
-function masukkan_sesi(array $u): void {
-    session_regenerate_id(true); // cegah session fixation
-    $_SESSION['user'] = [
-        'id'    => (int)$u['id'],
-        'nama'  => $u['nama'],
-        'email' => $u['email'],
-        'role'  => $u['role'],
+// Mengambil nama depan saja dari nama lengkap pengguna
+function nama_depan($nama_lengkap) {
+    $pecah = explode(' ', trim($nama_lengkap));
+    return $pecah[0];
+}
+
+// Mengubah format tanggal database menjadi format tanggal Indonesia (Contoh: 17 November 2026)
+function tanggal_id($waktu) {
+    $daftar_bulan = [
+        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
+    
+    $waktu_unix = strtotime($waktu);
+    $hari  = date('j', $waktu_unix);
+    $bulan = $daftar_bulan[(int)date('n', $waktu_unix)];
+    $tahun = date('Y', $waktu_unix);
+    
+    return $hari . ' ' . $bulan . ' ' . $tahun;
 }
-
-function nama_depan(string $nama): string {
-    return explode(' ', trim($nama))[0];
-}
-
-function tanggal_id(string $waktu): string {
-    $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    $t = strtotime($waktu);
-    return date('j', $t) . ' ' . $bulan[(int)date('n', $t)] . ' ' . date('Y', $t);
-}
-
-
-// Hasil kuis yang dikerjakan tamu disimpan sementara di session.
-// Setelah tamu masuk atau daftar, hasil itu dipindahkan ke riwayat. Mengembalikan id hasil, atau null.
-function simpan_hasil_tertunda(mysqli $db, int $uid): ?int {
-    $t = $_SESSION['hasil_tertunda'] ?? null;
-    unset($_SESSION['hasil_tertunda']);
-    if (!$t || time() - (int)$t['t'] > 3600) {      // kedaluwarsa setelah 1 jam
-        return null;
-    }
-    $v = (int)$t['v']; $a = (int)$t['a']; $k = (int)$t['k']; $g = (int)$t['g'];
-    if ($g < 1 || $g > 3 || min($v, $a, $k) < 0 || max($v, $a, $k) > 100) {
-        return null;
-    }
-    $stmt = $db->prepare('INSERT INTO hasil_kuis (user_id, persen_visual, persen_auditori, persen_kinestetik, gaya_utama_id) VALUES (?, ?, ?, ?, ?)');
-    $stmt->bind_param('iiiii', $uid, $v, $a, $k, $g);
-    $stmt->execute();
-    return $db->insert_id;
-}
+?>

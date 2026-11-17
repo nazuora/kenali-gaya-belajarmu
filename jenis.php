@@ -1,106 +1,155 @@
 <?php
+// Memanggil file koneksi database (jika diperlukan) dan fungsi ikon
 require __DIR__ . '/config/koneksi.php';
 require __DIR__ . '/includes/ikon.php';
 
-// Data konten halaman Jenis Gaya Belajar diatur langsung di sini (tanpa ambil dari database)
-$gaya = [
+// Data konten halaman Jenis Gaya Belajar dibuat manual di dalam array agar mudah dibaca
+$daftar_gaya = [
     [
-        'kode'       => 'V',
-        'nama'       => 'Visual',
+        'kode' => 'V',
+        'nama' => 'Visual',
         'pengertian' => 'Orang visual menyerap informasi paling baik lewat penglihatan: gambar, warna, diagram, dan tata letak yang rapi.',
-        'ciri'       => [
+        'ciri' => [
             'Mudah mengingat wajah, bentuk, dan warna',
             'Suka membuat catatan berwarna dan bergambar',
             'Lebih paham saat melihat peta, grafik, atau slide',
-            'Sulit fokus kalau hanya mendengar ceramah panjang',
+            'Sulit fokus kalau hanya mendengar ceramah panjang'
         ],
-        'tips'       => [
+        'tips' => [
             'Buat mind map dan diagram alur',
             'Pakai stabilo dengan kode warna',
             'Tonton video penjelasan',
-            'Ubah angka dan teks menjadi tabel atau grafik',
+            'Ubah angka dan teks menjadi tabel atau grafik'
         ],
-        'bidang'     => 'Desainer, arsitek, dan pekerjaan yang banyak memakai visual.',
+        'bidang' => 'Desainer, arsitek, dan pekerjaan yang banyak memakai visual.'
     ],
     [
-        'kode'       => 'A',
-        'nama'       => 'Auditori',
+        'kode' => 'A',
+        'nama' => 'Auditori',
         'pengertian' => 'Orang auditori menyerap informasi paling baik lewat pendengaran: penjelasan lisan, diskusi, dan irama.',
-        'ciri'       => [
+        'ciri' => [
             'Mudah mengingat percakapan dan penjelasan',
             'Suka berdiskusi dan bertanya',
             'Sering membaca sambil bersuara',
-            'Mudah terganggu oleh suara bising',
+            'Mudah terganggu oleh suara bising'
         ],
-        'tips'       => [
+        'tips' => [
             'Jelaskan ulang materi dengan suara',
             'Rekam rangkuman, lalu dengarkan ulang',
             'Belajar dalam kelompok diskusi',
-            'Dengarkan podcast atau materi audio',
+            'Dengarkan podcast atau materi audio'
         ],
-        'bidang'     => 'Pembicara, pengajar, dan pekerjaan yang banyak berkomunikasi lisan.',
+        'bidang' => 'Pembicara, pengajar, dan pekerjaan yang banyak berkomunikasi lisan.'
     ],
     [
-        'kode'       => 'K',
-        'nama'       => 'Kinestetik',
+        'kode' => 'K',
+        'nama' => 'Kinestetik',
         'pengertian' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
-        'ciri'       => [
+        'ciri' => [
             'Sulit duduk diam dalam waktu lama',
             'Lebih paham setelah mencoba sendiri',
             'Suka praktik, eksperimen, dan simulasi',
-            'Sering bergerak atau memegang benda saat berpikir',
+            'Sering bergerak atau memegang benda saat berpikir'
         ],
-        'tips'       => [
+        'tips' => [
             'Perbanyak latihan soal dan praktik',
             'Belajar sambil berjalan atau berdiri',
             'Pakai benda nyata sebagai alat peraga',
-            'Istirahat singkat untuk bergerak tiap 25 menit',
+            'Istirahat singkat untuk bergerak tiap 25 menit'
         ],
-        'bidang'     => 'Teknisi, atlet, dan pekerjaan yang banyak praktik lapangan.',
-    ],
+        'bidang' => 'Teknisi, atlet, dan pekerjaan yang banyak praktik lapangan.'
+    ]
 ];
 
 $judul = 'Jenis Gaya Belajar';
 require __DIR__ . '/includes/header.php';
 ?>
+
+<!-- Bagian Judul Halaman -->
 <h1 class="s">Jenis gaya belajar</h1>
 <p class="sub">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
 
+<!-- Bagian Tombol Tab Pilihan Gaya Belajar -->
 <div class="tabs" role="tablist">
-  <?php foreach ($gaya as $i => $g): ?>
-    <button type="button" role="tab" class="<?= e(strtolower($g['kode'])) ?>" data-kode="<?= e($g['kode']) ?>" data-k="<?= e(strtolower($g['kode'])) ?>" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>">
-      <?= ikon($g['kode']) ?><?= e($g['nama']) ?>
+  <?php foreach ($daftar_gaya as $i => $g): ?>
+    <?php 
+        $kodeKecil = strtolower($g['kode']);
+        // Menentukan apakah tab ini aktif di awal (untuk tab pertama)
+        $statusAktif = ($i === 0) ? 'true' : 'false';
+    ?>
+    <button type="button" role="tab" class="<?= $kodeKecil ?>" data-kode="<?= $g['kode'] ?>" data-k="<?= $kodeKecil ?>" aria-selected="<?= $statusAktif ?>">
+      <?= ikon($g['kode']) ?><?= htmlspecialchars($g['nama']) ?>
     </button>
   <?php endforeach; ?>
 </div>
 
-<?php foreach ($gaya as $i => $g): ?>
-  <article class="panel <?= e(strtolower($g['kode'])) ?>" id="p-<?= e($g['kode']) ?>" role="tabpanel" <?= $i === 0 ? '' : 'hidden' ?>>
+<!-- Bagian Panel Konten untuk Setiap Jenis Gaya Belajar -->
+<?php foreach ($daftar_gaya as $i => $g): ?>
+  <?php 
+      $kodeKecil = strtolower($g['kode']);
+      // Menyembunyikan panel selain panel pertama secara default
+      $atributHidden = ($i === 0) ? '' : 'hidden';
+  ?>
+  <article class="panel <?= $kodeKecil ?>" id="p-<?= $g['kode'] ?>" role="tabpanel" <?= $atributHidden ?>>
+    
     <div class="bubble">
-      <h2><?= e($g['nama']) ?></h2>
-      <p><?= e($g['pengertian']) ?></p>
+      <h2><?= htmlspecialchars($g['nama']) ?></h2>
+      <p><?= htmlspecialchars($g['pengertian']) ?></p>
     </div>
 
     <h3 class="sec">Ciri-cirimu</h3>
     <div class="chips">
-      <?php foreach ($g['ciri'] as $c): ?><span><?= e($c) ?></span><?php endforeach; ?>
+      <?php foreach ($g['ciri'] as $ciri_item): ?>
+        <span><?= htmlspecialchars($ciri_item) ?></span>
+      <?php endforeach; ?>
     </div>
 
     <h3 class="sec">Coba cara ini</h3>
     <div class="notes">
-      <?php foreach ($g['tips'] as $n => $t): ?><div class="note n<?= $n % 3 ?>"><?= e($t) ?></div><?php endforeach; ?>
+      <?php foreach ($g['tips'] as $index => $tips_item): ?>
+        <div class="note n<?= $index % 3 ?>"><?= htmlspecialchars($tips_item) ?></div>
+      <?php endforeach; ?>
     </div>
 
-    <?php if ($g['bidang']): ?><p class="bd">Cocok untuk: <?= e($g['bidang']) ?></p><?php endif; ?>
+    <?php if (!empty($g['bidang'])): ?>
+      <p class="bd">Cocok untuk: <?= htmlspecialchars($g['bidang']) ?></p>
+    <?php endif; ?>
+
   </article>
 <?php endforeach; ?>
 
-<p style="margin-top:18px"><a class="btn" href="<?= url('/kuis.php') ?>">Cari tahu gaya belajarmu</a></p>
+<!-- Tombol Navigasi ke Halaman Petunjuk -->
+<p style="margin-top:18px">
+    <a class="btn" href="<?= url('/petunjuk.php') ?>">Cari tahu gaya belajarmu</a>
+</p>
 
+<!-- Skrip JavaScript Sederhana untuk Mengatur Perpindahan Tab -->
 <script>
-  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-    document.querySelectorAll('.panel').forEach(p => p.hidden = p.id !== 'p-' + b.dataset.kode);
+  // Mengambil semua tombol tab yang ada
+  const semuaTombolTab = document.querySelectorAll('.tabs button');
+  const semuaPanelKonten = document.querySelectorAll('.panel');
+
+  semuaTombolTab.forEach(function(tombol) {
+    tombol.onclick = function() {
+      
+      // 1. Ubah status aria-selected pada semua tombol menjadi false, lalu jadikan true pada yang diklik
+      semuaTombolTab.forEach(function(t) {
+        t.setAttribute('aria-selected', 'false');
+      });
+      tombol.setAttribute('aria-selected', 'true');
+
+      // 2. Sembunyikan semua panel, lalu tampilkan panel yang kodenya cocok dengan tombol
+      const kodePilihan = tombol.getAttribute('data-kode');
+      semuaPanelKonten.forEach(function(panel) {
+        if (panel.id === 'p-' + kodePilihan) {
+          panel.removeAttribute('hidden');
+        } else {
+          panel.setAttribute('hidden', 'true');
+        }
+      });
+
+    };
   });
 </script>
+
 <?php require __DIR__ . '/includes/footer.php'; ?>

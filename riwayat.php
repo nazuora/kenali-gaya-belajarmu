@@ -1,88 +1,133 @@
 <?php
 require __DIR__ . '/config/koneksi.php';
 
+// Cek apakah pengguna sudah login atau belum
 $login = !empty($_SESSION['user']);
 $uid   = $login ? (int)$_SESSION['user']['id'] : 0;
 
-// ===== DELETE: hapus satu hasil milik pengguna ini =====
-if ($login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'hapus') {
+// Proses jika tombol Hapus diklik
+if ($login && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi']) && $_POST['aksi'] === 'hapus') {
     csrf_periksa();
-    $id = (int)($_POST['id'] ?? 0);
-    $stmt = $db->prepare('DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?'); // user_id mencegah menghapus data orang lain
-    $stmt->bind_param('ii', $id, $uid);
+    $id_riwayat = (int)($_POST['id'] ?? 0);
+    
+    // Hapus data dari database (pastikan milik user yang bersangkutan)
+    $stmt = $db->prepare('DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?');
+    $stmt->bind_param('ii', $id_riwayat, $uid);
     $stmt->execute();
+    
     header('Location: ' . url('/riwayat.php'));
     exit;
 }
 
-// ===== READ: semua hasil, dari yang paling lama =====
+// Ambil semua data riwayat kuis milik pengguna dari database
 $rows = [];
 if ($login) {
     $stmt = $db->prepare('SELECT h.id, h.persen_visual, h.persen_auditori, h.persen_kinestetik, h.dibuat_pada, g.kode, g.nama AS gaya
                           FROM hasil_kuis h
                           JOIN gaya_belajar g ON g.id = h.gaya_utama_id
                           WHERE h.user_id = ?
-                          ORDER BY h.dibuat_pada, h.id');
+                          ORDER BY h.dibuat_pada ASC, h.id ASC');
     $stmt->bind_param('i', $uid);
     $stmt->execute();
-    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+    }
 }
-$n = count($rows);
+$jumlah_data = count($rows);
 
-// Grafik garis (SVG dibuat di server)
-$garis = [
-    'persen_visual'     => ['Visual',     WARNA_GAYA['V'][0]],
-    'persen_auditori'   => ['Auditori',   WARNA_GAYA['A'][0]],
-    'persen_kinestetik' => ['Kinestetik', WARNA_GAYA['K'][0]],
-];
-$W = 600; $H = 220; $pad = 34;
-$px = fn(int $i): float => $pad + $i * ($W - 2 * $pad) / max(1, $n - 1);
-$py = fn(int $v): float => $H - $pad - ($v / 100) * ($H - 2 * $pad);
+// Pengaturan ukuran untuk grafik SVG sederhana
+$lebar_svg = 600;
+$tinggi_svg = 220;
+$padding = 34;
 
 $judul = 'Riwayat Kuis';
 require __DIR__ . '/includes/header.php';
 ?>
+
 <div class="narrow" style="max-width:720px">
   <h1 class="s">Riwayat kuismu</h1>
-  <p class="sub">Lihat perubahan gaya belajarmu dari waktu ke waktu.</p>
+  <p class="sub">Lihat perkembangan hasil gaya belajarmu dari waktu ke waktu.</p>
 
   <?php if (!$login): ?>
+    <!-- Tampilan jika belum masuk -->
     <div class="empty">
       <strong>Masuk dulu untuk melihat riwayat.</strong>
-      <p>Hasil kuis tersimpan di akunmu.</p>
-      <a class="btn" href="<?= e(url('/masuk.php')) ?>">Masuk</a>
+      <p>Hasil kuis akan tersimpan dengan aman di akunmu.</p>
+      <a class="btn" href="<?= e(url('/masuk.php')) ?>">Masuk Sekarang</a>
     </div>
 
-  <?php elseif ($n === 0): ?>
+  <?php elseif ($jumlah_data === 0): ?>
+    <!-- Tampilan jika sudah masuk tapi belum pernah kuis -->
     <div class="empty">
       <strong>Belum ada hasil kuis.</strong>
-      <p>Kerjakan kuis pertamamu untuk mulai melacak gaya belajar.</p>
-      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai kuis</a>
+      <p>Ayo kerjakan kuis pertamamu untuk mulai melacak gaya belajar.</p>
+      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai Kuis</a>
     </div>
 
   <?php else: ?>
-    <?php if ($n >= 2): ?>
+    <!-- Grafik Perkembangan (Muncul jika data minimal ada 2) -->
+    <?php if ($jumlah_data >= 2): ?>
       <section class="card" aria-label="Grafik perkembangan">
         <h2 style="margin-top:0">Perkembangan persentase</h2>
-        <svg viewBox="0 0 <?= $W ?> <?= $H ?>" style="width:100%;height:auto;display:block" role="img" aria-label="Grafik garis persentase tiga gaya belajar">
-          <?php foreach ([0, 50, 100] as $t): ?>
-            <line x1="<?= $pad ?>" x2="<?= $W - $pad ?>" y1="<?= $py($t) ?>" y2="<?= $py($t) ?>" stroke="var(--line)"/>
-            <text x="4" y="<?= $py($t) + 4 ?>" font-size="12" fill="var(--muted)"><?= $t ?>%</text>
-          <?php endforeach; ?>
-          <?php foreach ($garis as $kolom => [$nama, $warna]): ?>
-            <?php
-              $titik = [];
-              foreach ($rows as $i => $r) $titik[] = round($px($i), 1) . ',' . round($py((int)$r[$kolom]), 1);
+        
+        <svg viewBox="0 0 <?= $lebar_svg ?> <?= $tinggi_svg ?>" style="width:100%;height:auto;display:block">
+          <!-- Garis latar belakang persentase (0%, 50%, 100%) -->
+          <?php foreach ([0, 50, 100] as $titik_persen): ?>
+            <?php 
+              // Hitung posisi Y secara manual agar mudah dipahami
+              $koefisien = $titik_persen / 100;
+              $pos_y = $tinggi_svg - $padding - ($koefisien * ($tinggi_svg - (2 * $padding)));
             ?>
-            <polyline points="<?= e(implode(' ', $titik)) ?>" fill="none" stroke="<?= $warna ?>" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            <?php foreach ($rows as $i => $r): ?>
-              <circle cx="<?= round($px($i), 1) ?>" cy="<?= round($py((int)$r[$kolom]), 1) ?>" r="5" fill="<?= $warna ?>"/>
+            <line x1="<?= $padding ?>" x2="<?= $lebar_svg - $padding ?>" y1="<?= $pos_y ?>" y2="<?= $pos_y ?>" stroke="var(--line)"/>
+            <text x="4" y="<?= $pos_y + 4 ?>" font-size="12" fill="var(--muted)"><?= $titik_persen ?>%</text>
+          <?php endforeach; ?>
+
+          <?php 
+            // Daftar warna untuk masing-masing garis gaya belajar
+            $gaya_garis = [
+              'persen_visual'     => ['Visual', WARNA_GAYA['V'][0]],
+              'persen_auditori'   => ['Auditori', WARNA_GAYA['A'][0]],
+              'persen_kinestetik' => ['Kinestetik', WARNA_GAYA['K'][0]],
+            ];
+
+            foreach ($gaya_garis as $kolom => [$nama_gaya, $warna_garis]):
+              $titik_koordinat = [];
+              foreach ($rows as $indeks => $data_baris) {
+                // Hitung posisi X dan Y untuk setiap titik data
+                if ($jumlah_data <= 1) {
+                  $pos_x = $padding;
+                } else {
+                  $pos_x = $padding + $indeks * ($lebar_svg - (2 * $padding)) / ($jumlah_data - 1);
+                }
+                
+                $nilai_persen = (int)$data_baris[$kolom];
+                $pos_y = $tinggi_svg - $padding - (($nilai_persen / 100) * ($tinggi_svg - (2 * $padding)));
+                
+                $titik_koordinat[] = round($pos_x, 1) . ',' . round($pos_y, 1);
+              }
+          ?>
+            <!-- Garis penghubung titik -->
+            <polyline points="<?= e(implode(' ', $titik_koordinat)) ?>" fill="none" stroke="<?= $warna_garis ?>" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            
+            <!-- Lingkaran titik di setiap hasil kuis -->
+            <?php foreach ($rows as $indeks => $data_baris): ?>
+              <?php 
+                if ($jumlah_data <= 1) {
+                  $pos_x = $padding;
+                } else {
+                  $pos_x = $padding + $indeks * ($lebar_svg - (2 * $padding)) / ($jumlah_data - 1);
+                }
+                $nilai_persen = (int)$data_baris[$kolom];
+                $pos_y = $tinggi_svg - $padding - (($nilai_persen / 100) * ($tinggi_svg - (2 * $padding)));
+              ?>
+              <circle cx="<?= round($pos_x, 1) ?>" cy="<?= round($pos_y, 1) ?>" r="5" fill="<?= $warna_garis ?>"/>
             <?php endforeach; ?>
           <?php endforeach; ?>
-          <?php foreach ($rows as $i => $r): ?>
-            <text x="<?= round($px($i), 1) ?>" y="<?= $H - 8 ?>" text-anchor="middle" font-size="12" fill="var(--muted)"><?= e(implode(' ', array_slice(explode(' ', tanggal_id($r['dibuat_pada'])), 0, 2))) ?></text>
-          <?php endforeach; ?>
         </svg>
+
+        <!-- Keterangan warna grafik -->
         <div class="legend">
           <span><i style="background:<?= WARNA_GAYA['V'][0] ?>"></i>Visual</span>
           <span><i style="background:<?= WARNA_GAYA['A'][0] ?>"></i>Auditori</span>
@@ -91,6 +136,7 @@ require __DIR__ . '/includes/header.php';
       </section>
     <?php endif; ?>
 
+    <!-- Daftar riwayat dalam bentuk kartu akordion (dibalik supaya yang terbaru di atas) -->
     <?php foreach (array_reverse($rows) as $r): ?>
       <div class="item">
         <button type="button" class="head" aria-expanded="false">
@@ -98,15 +144,28 @@ require __DIR__ . '/includes/header.php';
           <span class="date"><?= e(tanggal_id($r['dibuat_pada'])) ?></span>
           <span class="chev" aria-hidden="true">&#9662;</span>
         </button>
+        
         <div class="body hidden">
-          <?php foreach ([['Visual', 'persen_visual', 'V'], ['Auditori', 'persen_auditori', 'A'], ['Kinestetik', 'persen_kinestetik', 'K']] as [$nama, $kolom, $k]): ?>
-            <div class="row">
-              <div class="lab"><span><?= $nama ?></span><span><?= (int)$r[$kolom] ?>%</span></div>
-              <div class="track"><div style="width:<?= (int)$r[$kolom] ?>%;background:<?= WARNA_GAYA[$k][0] ?>"></div></div>
-            </div>
-          <?php endforeach; ?>
+          <!-- Baris persentase untuk masing-masing tipe -->
+          <div class="row">
+            <div class="lab"><span>Visual</span><span><?= (int)$r['persen_visual'] ?>%</span></div>
+            <div class="track"><div style="width:<?= (int)$r['persen_visual'] ?>%;background:<?= WARNA_GAYA['V'][0] ?>"></div></div>
+          </div>
+          
+          <div class="row">
+            <div class="lab"><span>Auditori</span><span><?= (int)$r['persen_auditori'] ?>%</span></div>
+            <div class="track"><div style="width:<?= (int)$r['persen_auditori'] ?>%;background:<?= WARNA_GAYA['A'][0] ?>"></div></div>
+          </div>
+          
+          <div class="row">
+            <div class="lab"><span>Kinestetik</span><span><?= (int)$r['persen_kinestetik'] ?>%</span></div>
+            <div class="track"><div style="width:<?= (int)$r['persen_kinestetik'] ?>%;background:<?= WARNA_GAYA['K'][0] ?>"></div></div>
+          </div>
+
+          <!-- Tombol aksi (Lihat Detail dan Hapus) -->
           <div class="actions" style="justify-content:flex-start;align-items:center">
             <a class="btn ghost" style="padding:8px 18px" href="<?= e(url('/hasil.php?id=' . (int)$r['id'])) ?>">Lihat detail</a>
+            
             <form method="post">
               <?= csrf_field() ?>
               <input type="hidden" name="aksi" value="hapus">
@@ -119,18 +178,29 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   <?php endif; ?>
 </div>
+
 <script>
-  document.querySelectorAll('.item').forEach(item => {
-    const head = item.querySelector('.head'), body = item.querySelector('.body'), del = item.querySelector('.del');
-    head.onclick = () => {
-      const buka = head.getAttribute('aria-expanded') === 'true';
-      head.setAttribute('aria-expanded', !buka);
-      body.classList.toggle('hidden', buka);
+  // Script sederhana untuk membuka/tutup riwayat dan tombol konfirmasi hapus
+  document.querySelectorAll('.item').forEach(function(item) {
+    const head = item.querySelector('.head');
+    const body = item.querySelector('.body');
+    const delBtn = item.querySelector('.del');
+
+    head.onclick = function() {
+      const isOpen = head.getAttribute('aria-expanded') === 'true';
+      head.setAttribute('aria-expanded', !isOpen);
+      body.classList.toggle('hidden', isOpen);
     };
-    del.onclick = () => {
-      if (del.dataset.sure) { del.closest('form').submit(); }
-      else { del.dataset.sure = 1; del.textContent = 'Klik lagi untuk menghapus'; }
+
+    delBtn.onclick = function() {
+      if (delBtn.dataset.sure) {
+        delBtn.closest('form').submit();
+      } else {
+        delBtn.dataset.sure = "1";
+        delBtn.textContent = 'Klik lagi untuk konfirmasi hapus';
+      }
     };
   });
 </script>
+
 <?php require __DIR__ . '/includes/footer.php'; ?>

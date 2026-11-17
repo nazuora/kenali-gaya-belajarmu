@@ -1,65 +1,86 @@
 <?php
-// proses-kuis.php
-require __DIR__ . '/config/koneksi.php';
-wajib_login();
+// Mulai sesi jika belum aktif
+session_start();
+include "config/koneksi.php"; // Menggunakan include standar mahasiswa
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ' . url('/kuis.php'));
+// Cek apakah user sudah login atau belum
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
     exit;
 }
 
-csrf_periksa();
+// Cek apakah halaman ini diakses via tombol submit (POST)
+if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+    header('Location: kuis.php');
+    exit;
+}
 
 $userId = $_SESSION['user']['id'];
-$jawabanUser = $_POST['jawaban'] ?? []; // Format: [pertanyaan_id => gaya_id]
+$jawabanUser = isset($_POST['jawaban']) ? $_POST['jawaban'] : [];
 
+// Validasi jika user belum menjawab sama sekali
 if (empty($jawabanUser)) {
-    $_SESSION['galat'] = 'Kamu harus menjawab setidaknya satu pertanyaan.';
-    header('Location: ' . url('/kuis.php'));
+    $_SESSION['galat'] = 'Kamu harus menjawab setidaknya satu pertanyaan!';
+    header('Location: kuis.php');
     exit;
 }
 
-// Hitung total pilihan per gaya belajar (V=1, A=2, K=3)
+// Inisialisasi variabel penghitung untuk setiap gaya belajar
+// 1 = Visual, 2 = Auditoris, 3 = Kinestetik
 $totalV = 0;
 $totalA = 0;
 $totalK = 0;
+
+// Hitung jumlah jawaban dari pilihan user
+foreach ($jawabanUser as $pertanyaanId => $gayaId) {
+    if ($gayaId == 1) {
+        $totalV = $totalV + 1;
+    } elseif ($gayaId == 2) {
+        $totalA = $totalA + 1;
+    } elseif ($gayaId == 3) {
+        $totalK = $totalK + 1;
+    }
+}
+
+// Hitung total seluruh jawaban yang masuk
 $totalJawab = count($jawabanUser);
 
-foreach ($jawabanUser as $pId => $gayaId) {
-    $gId = (int)$gayaId;
-    if ($gId === 1) $totalV++;
-    elseif ($gId === 2) $totalA++;
-    elseif ($gId === 3) $totalK++;
+// Hitung persentase masing-masing gaya belajar
+$persenV = 0;
+$persenA = 0;
+$persenK = 0;
+
+if ($totalJawab >  0) {
+    $persenV = round(($totalV / $totalJawab) * 100);
+    $persenA = round(($totalA / $totalJawab) * 100);
+    $persenK = round(($totalK / $totalJawab) * 100);
 }
 
-// Hitung persentase
-$persenV = $totalJawab > 0 ? round(($totalV / $totalJawab) * 100) : 0;
-$persenA = $totalJawab > 0 ? round(($totalA / $totalJawab) * 100) : 0;
-$persenK = $totalJawab > 0 ? round(($totalK / $totalJawab) * 100) : 0;
+// Tentukan gaya belajar utama berdasarkan nilai yang paling tinggi
+$gayaUtamaId = 1; // Default diset ke Visual
 
-// Tentukan gaya utama (yang persentasenya paling tinggi)
-$gayaUtamaId = 1; // Default Visual
-$maxSkor = max($totalV, $totalA, $totalK);
-if ($maxSkor === $totalA) {
-    $gayaUtamaId = 2; // Auditoris
-} elseif ($maxSkor === $totalK) {
-    $gayaUtamaId = 3; // Kinestetik
+if ($totalA > $totalV && $totalA > $totalK) {
+    $gayaUtamaId = 2; // Auditoris lebih tinggi
+} elseif ($totalK > $totalV && $totalK > $totalA) {
+    $gayaUtamaId = 3; // Kinestetik lebih tinggi
 }
 
-// Simpan ke database tabel hasil_kuis (menggunakan NOW() langsung tanpa menyertakan kolom tanggal secara manual)
-$stmt = $db->prepare('
-    INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik) 
-    VALUES (?, ?, ?, ?, ?)
-');
+// Simpan hasil perhitungan ke dalam database
+$query = "INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik) VALUES (?, ?, ?, ?, ?)";
+$stmt = $db->prepare($query);
 $stmt->bind_param('iiiii', $userId, $gayaUtamaId, $persenV, $persenA, $persenK);
 
 if ($stmt->execute()) {
-    $hasilId = $db->insert_id;
-    // Arahkan ke halaman hasil kuis dengan membawa ID hasil
-    header('Location: ' . url('/hasil.php?id=' . $hasilId));
+    // Ambil ID dari data yang baru saja dimasukkan
+    $hasilId = $stmt->insert_id;
+    
+    // Alihkan ke halaman hasil kuis
+    header('Location: hasil.php?id=' . $hasilId);
     exit;
 } else {
-    $_SESSION['galat'] = 'Gagal menyimpan hasil kuis: ' . $db->error;
-    header('Location: ' . url('/kuis.php'));
+    // Jika gagal menyimpan ke database
+    $_SESSION['galat'] = 'Gagal menyimpan hasil kuis, silakan coba lagi.';
+    header('Location: kuis.php');
     exit;
 }
+?>
