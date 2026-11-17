@@ -72,7 +72,7 @@ require __DIR__ . '/includes/header.php';
     <div class="empty">
       <strong>Belum ada hasil kuis.</strong>
       <p>Ayo kerjakan kuis pertamamu untuk mulai melacak gaya belajar.</p>
-      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai Kuis</a>
+      <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">Mulai Kuis</a>
     </div>
 
   <?php else: ?>

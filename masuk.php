@@ -50,7 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Memeriksa apakah user ditemukan dan kata sandinya cocok
             if ($user && password_verify($sandi, $user['password_hash'])) {
-                masukkan_sesi($user);
+                // Simpan data user ke dalam sesi PHP
+                $_SESSION['user'] = [
+                    'id'    => (int)$user['id'],
+                    'nama'  => $user['nama'],
+                    'email' => $user['email'],
+                    'role'  => $user['role']
+                ];
                 $hasilId = simpan_hasil_tertunda($db, (int)$user['id']);
                 
                 // Arahkan ke hasil kuis jika ada, atau ke halaman kuis utama
@@ -98,12 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $idBaru = (int)$db->insert_id;
                 
                 // Langsung masukkan ke sesi agar otomatis login setelah mendaftar
-                masukkan_sesi([
+                $_SESSION['user'] = [
                     'id'    => $idBaru, 
                     'nama'  => $nilai['nama'], 
                     'email' => $nilai['email'], 
                     'role'  => 'user'
-                ]);
+                ];
                 
                 $hasilId = simpan_hasil_tertunda($db, $idBaru);
                 $tujuan = $hasilId ? '/hasil.php?id=' . $hasilId : '/kuis.php';
