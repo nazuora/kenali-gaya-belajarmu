@@ -67,33 +67,7 @@ require __DIR__ . '/includes/header.php';
       <a href="<?= e(url('/jenis.php')) ?>" class="btn ghost">Lihat jenis gaya belajar</a>
     </div>
   </div>
-
-  <?php if ($coba): ?>
-    <div class="cobacard" aria-labelledby="judulcoba">
-      <h2 id="judulcoba">Coba satu pertanyaan</h2>
-      <p><?= e($coba['teks']) ?></p>
-      
-      <!-- Pilihan jawaban -->
-      <div class="coba-opsi-container">
-        <?php foreach ($coba['jawaban'] as $j): ?>
-          <button type="button" class="opt <?= e(strtolower($j['kode'])) ?>" data-kode="<?= e($j['kode']) ?>" aria-pressed="false"><?= e($j['teks']) ?></button>
-        <?php endforeach; ?>
-      </div>
-
-      <div id="dres" aria-live="polite"></div>
-    </div>
-  <?php endif; ?>
 </section>
-
-<h2 style="margin-top:48px;text-align:center">Kenalan dengan tiga maskot</h2>
-<div class="trio">
-  <?php foreach ($gaya as $g): ?>
-    <button type="button" class="mas <?= e(strtolower($g['kode'])) ?>" data-kode="<?= e($g['kode']) ?>" aria-pressed="false">
-      <span class="mi"><?= ikon($g['kode']) ?></span><?= e($g['nama']) ?>
-    </button>
-  <?php endforeach; ?>
-</div>
-<div class="trioNote" id="trioNote" aria-live="polite">Ketuk satu maskot untuk berkenalan.</div>
 
 <h2 style="margin-top:36px;font-size:1.5rem">Cara kerjanya</h2>
 <ol class="steps">
@@ -128,23 +102,6 @@ require __DIR__ . '/includes/header.php';
       
       kotakHasil.appendChild(tagB);
       kotakHasil.append(' ' + dataGaya.kalimat + ' Kuis lengkap akan mengungkap profilmu.');
-    };
-  });
-
-  // Script untuk tombol maskot
-  const tombolMaskot = document.querySelectorAll('.mas');
-  tombolMaskot.forEach(function(b) {
-    b.onclick = function() {
-      tombolMaskot.forEach(function(x) {
-        x.setAttribute('aria-pressed', 'false');
-      });
-      b.setAttribute('aria-pressed', 'true');
-      
-      const kode = b.getAttribute('data-kode');
-      const catatan = document.getElementById('trioNote');
-      
-      catatan.className = 'trioNote ' + kode.toLowerCase();
-      catatan.textContent = infoData[kode].kalimat;
     };
   });
 </script>
