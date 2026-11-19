@@ -1,9 +1,4 @@
 <?php
-/* 
-  File: includes/footer.php (Bagian Penutup)
-  Keterangan: Berisi penutup tag HTML utama serta bagian footer halaman 
-  yang menampilkan informasi hak cipta atau keterangan kelompok tugas.
-*/
 ?>
 
     <!-- Penutup Konten Utama Halaman -->
@@ -16,5 +11,24 @@
       </div>
     </footer>
 
-  </body>
+ <script>
+function tampilJam() {
+    const e = document.getElementById('jam');
+
+    if (e) {
+        e.textContent = new Date()
+            .toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })
+            .replace(/\./g, ':');
+    }
+}
+
+tampilJam();
+setInterval(tampilJam, 1000);
+</script>
+
+</body>
 </html>
