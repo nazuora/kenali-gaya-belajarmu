@@ -35,11 +35,7 @@ if (isset($_SESSION['user'])) {
       
       <!-- Logo Website -->
       <a href="<?= url('/') ?>" class="logo">
-        <span class="dots" aria-hidden="true">
-          <i style="background:var(--blue)"></i>
-          <i style="background:var(--yellow)"></i>
-          <i style="background:var(--green)"></i>
-        </span>
+        
         Kenali Gaya Belajarmu
       </a>
 
@@ -56,30 +52,19 @@ if (isset($_SESSION['user'])) {
           Jenis
         </a>
         
-        <!-- Menu Petunjuk Penggunaan -->
-        <a href="<?= url('/petunjuk.php') ?>" <?php if ($halaman_aktif == 'petunjuk.php') echo 'aria-current="page"'; ?>>
-          Petunjuk
-        </a>
-        
-        <!-- Menu Kuis (Hanya menyala jika benar-benar di kuis.php atau hasil.php) -->
-        <a href="<?= url('/petunjuk.php') ?>" <?php if ($halaman_aktif == 'kuis.php' || $halaman_aktif == 'hasil.php') echo 'aria-current="page"'; ?>>
-          Kuis
-        </a>
-        
+        <!-- Menu Kuis -->
+<a href="<?= url('/petunjuk.php') ?>"
+   <?php if (
+       $halaman_aktif == 'petunjuk.php' ||
+       $halaman_aktif == 'kuis.php' ||
+       $halaman_aktif == 'hasil.php'
+   ) echo 'aria-current="page"'; ?>>
+    Kuis
+</a>    
         <!-- Menu Riwayat Tes Pengguna -->
         <a href="<?= url('/riwayat.php') ?>" <?php if ($halaman_aktif == 'riwayat.php') echo 'aria-current="page"'; ?>>
           Riwayat
         </a>
-
-        <?php 
-          // Jika yang login adalah admin, tampilkan menu Admin
-          if ($pengguna && isset($pengguna['role']) && $pengguna['role'] == 'admin') { 
-        ?>
-          <a href="<?= url('/admin/pertanyaan.php') ?>" <?php if ($halaman_aktif == 'pertanyaan.php' || $halaman_aktif == 'gaya.php') echo 'aria-current="page"'; ?>>
-            Admin
-          </a>
-        <?php } ?>
-
         <?php 
           // Jika sudah login, tampilkan nama depan pengguna. Jika belum, tampilkan tombol Masuk.
           if ($pengguna) { 
@@ -95,6 +80,7 @@ if (isset($_SESSION['user'])) {
             Masuk
           </a>
         <?php } ?>
+        <span id="jam"></span>
 
       </div>
     </nav>

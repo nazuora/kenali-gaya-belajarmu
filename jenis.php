@@ -85,7 +85,7 @@ require __DIR__ . '/includes/header.php';
         $statusAktif = ($i === 0) ? 'true' : 'false';
     ?>
     <button type="button" role="tab" class="<?= $kodeKecil ?>" data-kode="<?= $g['kode'] ?>" data-k="<?= $kodeKecil ?>" aria-selected="<?= $statusAktif ?>">
-      <?= ikon($g['kode']) ?><?= htmlspecialchars($g['nama']) ?>
+      <?= htmlspecialchars($g['nama']) ?>
     </button>
   <?php endforeach; ?>
 </div>
@@ -104,30 +104,24 @@ require __DIR__ . '/includes/header.php';
       <p><?= htmlspecialchars($g['pengertian']) ?></p>
     </div>
 
-    <h3 class="sec">Ciri-cirimu</h3>
-    <div class="chips">
+       <h3 class="sec">Ciri-ciri dan cara belajar</h3>
+
+    <ul class="tips">
       <?php foreach ($g['ciri'] as $ciri_item): ?>
-        <span><?= htmlspecialchars($ciri_item) ?></span>
+        <li><?= htmlspecialchars($ciri_item) ?></li>
       <?php endforeach; ?>
-    </div>
 
-    <h3 class="sec">Coba cara ini</h3>
-    <div class="notes">
-      <?php foreach ($g['tips'] as $index => $tips_item): ?>
-        <div class="note n<?= $index % 3 ?>"><?= htmlspecialchars($tips_item) ?></div>
+      <?php foreach ($g['tips'] as $tips_item): ?>
+        <li><?= htmlspecialchars($tips_item) ?></li>
       <?php endforeach; ?>
-    </div>
-
-    <?php if (!empty($g['bidang'])): ?>
-      <p class="bd">Cocok untuk: <?= htmlspecialchars($g['bidang']) ?></p>
-    <?php endif; ?>
+    </ul>
 
   </article>
 <?php endforeach; ?>
 
 <!-- Tombol Navigasi ke Halaman Kuis -->
 <p style="margin-top:18px">
-    <a class="btn" href="<?= url('/kuis.php') ?>">Cari tahu gaya belajarmu</a>
+    <a class="btn" href="<?= url('/petunjuk.php') ?>">Cari tahu gaya belajarmu</a>
 </p>
 
 <!-- Skrip JavaScript Sederhana untuk Mengatur Perpindahan Tab -->
