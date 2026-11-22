@@ -60,17 +60,14 @@ require_once __DIR__ . '/includes/header.php';
 
     <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
         <a href="<?= e(url('/kuis.php')) ?>" class="btn">
-            Mulai Kuis
+            Mulai Kuis 
         </a>
     </div>
 
 </div>
 
   <!-- Tombol untuk mulai masuk ke halaman soal kuis -->
-  <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
-    <a href="<?= e(url('/kuis.php')) ?>" class="btn">Mulai Kuis Sekarang</a>
-  </div>
-</div>
+  
 
 <?php 
 // Memuat bagian bawah halaman (footer dan penutup HTML)
