@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;800;900&display=swap');
+
+/* ==================== 1. VARIABEL WARNA & TEMA ==================== */
 
 :root {
   box-sizing: border-box;
@@ -10,19 +12,11 @@
   --text: #1F1F1F;
   --muted: #666666;
   --line: #E6DCC8;
-
-  --blue: var(--text);
-  --yellow: var(--text);
-  --green: var(--text);
   --err: #C2334D;
   --ok: #23825B;
-
-  --blue-soft: var(--bg);
-  --yellow-soft: var(--bg);
-  --green-soft: var(--bg);
 }
 
-/* Mode gelap: dipakai otomatis kalau HP atau laptop memakai mode gelap */
+/* Mode gelap otomatis mengikuti pengaturan sistem */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #1E1E1E;
@@ -71,7 +65,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid var(--blue);
+  outline: 3px solid var(--text);
   outline-offset: 3px;
 }
 
@@ -126,19 +120,6 @@ nav {
   font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: -.01em;
-}
-
-/* Tiga titik warna di samping logo */
-.dots {
-  display: none;
-  gap: 4px;
-}
-
-.dots i {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
 }
 
 .links {
@@ -247,6 +228,15 @@ h2 {
   font: inherit;
   font-weight: 900;
   cursor: pointer;
+}
+
+/* Baris tombol (misalnya Kembali dan Lanjut) */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 /* Tombol dengan garis tepi saja */
@@ -363,16 +353,6 @@ textarea.t:focus {
   gap: 36px;
 }
 
-/* Foto pengganti kartu "Coba satu pertanyaan" */
-.hero-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 420px;
-  object-fit: cover;
-  border-radius: 26px;
-}
-
 /* Tombol pilihan jawaban */
 .opt {
   display: block;
@@ -391,7 +371,7 @@ textarea.t:focus {
 }
 
 .opt:hover {
-  border-color: var(--blue);
+  border-color: var(--text);
 }
 
 .opt:active {
@@ -400,9 +380,9 @@ textarea.t:focus {
 
 /* Pilihan yang sedang dipilih */
 .opt[aria-pressed="true"] {
-  border-color: var(--blue);
+  border-color: var(--text);
   border-width: 3px;
-  background: var(--blue-soft);
+  background: var(--bg);
 }
 
 /* Cara kerja (daftar langkah bernomor) */
@@ -477,10 +457,6 @@ textarea.t:focus {
   cursor: pointer;
 }
 
-.tabs svg {
-  display: none;
-}
-
 .tabs button:hover {
   background: transparent;
 }
@@ -488,16 +464,6 @@ textarea.t:focus {
 .tabs button[aria-selected="true"] {
   background: var(--text);
   color: var(--bg);
-}
-
-/* Panel isi tiap gaya belajar */
-.panel,
-.panel.v,
-.panel.a,
-.panel.k {
-  padding: 0;
-  background: none;
-  border-radius: 0;
 }
 
 .panel h2 {
@@ -529,121 +495,6 @@ textarea.t:focus {
 .sec {
   margin: 18px 0 8px;
   font-size: 1.2rem;
-}
-
-/* Ciri-ciri (daftar biasa) */
-.chips {
-  display: block;
-  margin: 0;
-  padding-left: 22px;
-}
-
-.chips span {
-  display: list-item;
-  list-style: disc;
-  padding: 0;
-  background: none;
-  border-radius: 0;
-  font-size: 1rem;
-  font-weight: 400;
-  margin-bottom: 4px;
-}
-
-/* Coba cara ini (daftar biasa) */
-.notes {
-  display: block;
-  margin: 0;
-  padding-left: 22px;
-}
-
-.note,
-.note.n0,
-.note.n1,
-.note.n2 {
-  display: list-item;
-  list-style: disc;
-  margin-bottom: 4px;
-  padding: 0;
-  background: none;
-  border-radius: 0;
-  box-shadow: none;
-  font-weight: 400;
-  transform: none;
-}
-
-.bd {
-  margin: 16px 0 0;
-  color: var(--muted);
-}
-
-/* Bagian di bawah ini dipakai oleh file demo */
-.types {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 8px;
-}
-
-.type {
-  padding: 22px;
-  border-radius: 26px;
-}
-
-.type.v {
-  background: var(--blue-soft);
-}
-
-.type.a {
-  background: var(--yellow-soft);
-}
-
-.type.k {
-  background: var(--green-soft);
-}
-
-.type svg {
-  width: 52px;
-  height: 52px;
-}
-
-.type h3 {
-  margin: 4px 0 4px;
-  font-size: 1.5rem;
-}
-
-.type p {
-  margin: 0;
-  color: var(--muted);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.box {
-  padding: 16px;
-  background: var(--surface);
-  border-radius: 26px;
-}
-
-.box h3 {
-  margin: 0 0 6px;
-  font-size: 1.5rem;
-}
-
-.box ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.box li {
-  margin-bottom: 4px;
-}
-
-.box.wide {
-  grid-column: 1 / -1;
 }
 
 
@@ -714,16 +565,6 @@ ul.tips {
 
 ul.tips li {
   margin-bottom: 6px;
-}
-
-/* Gambar kartu hasil */
-#out {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin-bottom: 8px;
-  border: 2px solid var(--line);
-  border-radius: 26px;
 }
 
 
@@ -881,7 +722,7 @@ ul.tips li {
 }
 
 .file:focus-within {
-  outline: 3px solid var(--blue);
+  outline: 3px solid var(--text);
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -916,10 +757,7 @@ footer {
 }
 
 @media (max-width: 760px) {
-
-  .hero,
-  .grid,
-  .types {
+  .hero {
     grid-template-columns: 1fr;
   }
 }

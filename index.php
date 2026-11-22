@@ -6,9 +6,8 @@
   serta tombol navigasi untuk memulai kuis atau masuk ke akun.
 */
 
-// Memanggil file koneksi database dan ikon
+// Memanggil file koneksi database 
 require __DIR__ . '/config/koneksi.php';
-require __DIR__ . '/includes/ikon.php';
 
 $judul = 'Kenali Gaya Belajarmu';
 require __DIR__ . '/includes/header.php';
@@ -22,7 +21,6 @@ require __DIR__ . '/includes/header.php';
       <a href="<?= e(url('/petunjuk.php')) ?>" class="btn">Mulai Kuis Sekarang</a>
     </div>
   </div>
-    </div>
 </section>
 
 <h2 style="margin-top:36px;font-size:1.5rem">Cara kerjanya</h2>
