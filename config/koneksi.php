@@ -72,13 +72,24 @@ function wajib_login() {
     }
 }
 
-// Fungsi untuk mengecek apakah yang login adalah admin
-function wajib_admin() {
-    wajib_login(); // Pastikan login dulu
-    
-    // Cek rolenya apakah admin
-    if ($_SESSION['user']['role'] != 'admin') {
-        echo "Akses ditolak! Halaman ini khusus untuk Admin.";
+// Wajib admin: belum login diarahkan ke Masuk, akun biasa melihat halaman penolakan yang rapi
+function wajib_admin(): void {
+    wajib_login();
+    if ($_SESSION['user']['role'] !== 'admin') {
+        http_response_code(403);
+        $judul = 'Khusus Admin';
+        require __DIR__ . '/../includes/header.php';
+        ?>
+<div class="narrow" style="max-width:520px">
+  <div class="empty">
+    <h1 class="s">Halaman khusus admin</h1>
+    <p>Akun kamu belum punya akses ke panel admin. Masuk dengan akun admin untuk mengelola pertanyaan kuis dan isi gaya belajar.</p>
+    <a class="btn" href="<?= e(url('/')) ?>">Kembali ke Home</a>
+    <a class="btn ghost" href="<?= e(url('/keluar.php')) ?>">Keluar dan masuk sebagai admin</a>
+  </div>
+</div>
+<?php
+        require __DIR__ . '/../includes/footer.php';
         exit;
     }
 }
