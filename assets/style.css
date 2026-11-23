@@ -136,7 +136,7 @@ nav {
 }
 
 .links a:hover {
-  background: #595555;
+  background: transparent;
 }
 
 #jam {
@@ -351,6 +351,19 @@ textarea.t:focus {
   grid-template-columns: 1.1fr 1fr;
   align-items: center;
   gap: 36px;
+}
+
+/* Gambar di sisi kanan beranda */
+.hero-gambar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-gambar img {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: block;
 }
 
 /* Tombol pilihan jawaban */
