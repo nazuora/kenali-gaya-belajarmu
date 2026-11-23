@@ -8,7 +8,6 @@
 
 // Memanggil file koneksi database (jika diperlukan) dan fungsi ikon
 require __DIR__ . '/config/koneksi.php';
-require __DIR__ . '/includes/ikon.php';
 
 // Data konten halaman Jenis Gaya Belajar dibuat manual di dalam array agar mudah dibaca
 $daftar_gaya = [

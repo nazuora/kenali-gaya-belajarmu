@@ -65,6 +65,10 @@ if (isset($_SESSION['user'])) {
         <a href="<?= url('/riwayat.php') ?>" <?php if ($halaman_aktif == 'riwayat.php') echo 'aria-current="page"'; ?>>
           Riwayat
         </a>
+        <!-- Menu Admin (tampil untuk semua, halamannya tetap dijaga wajib_admin) -->
+<a href="<?= url('/admin/pertanyaan.php') ?>" <?php if (in_array($halaman_aktif, ['pertanyaan.php', 'gaya.php'], true)) echo 'aria-current="page"'; ?>>
+  Admin
+</a>
         <?php 
           // Jika sudah login, tampilkan nama depan pengguna. Jika belum, tampilkan tombol Masuk.
           if ($pengguna) { 
