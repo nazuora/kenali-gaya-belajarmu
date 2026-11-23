@@ -23,13 +23,11 @@ require __DIR__ . '/includes/header.php';
   </div>
 
   <?php
-    // Gambar di sisi kanan beranda (assets/foto-home.png).
-    // Mau diganti gambar lain? Cukup ubah nama file di bawah ini.
-    $gambar_home = 'assets/foto-home.png';
+    $gambar_home = 'assets/foto.png';
     if (file_exists(__DIR__ . '/' . $gambar_home)):
   ?>
     <div class="hero-gambar">
-      <img src="<?= e(url('/' . $gambar_home)) ?>" alt="Anak tersenyum mengacungkan jempol di depan laptop">
+      <img src="<?= e(url('/' . $gambar_home)) ?>" alt="Ilustrasi perempuan tersenyum sedang bekerja di depan komputer">
     </div>
   <?php endif; ?>
 </section>
