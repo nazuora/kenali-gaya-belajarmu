@@ -32,7 +32,7 @@ require __DIR__ . '/includes/header.php';
   <?php endif; ?>
 </section>
 
-<h2 style="margin-top:72px;font-size:1.5rem;text-align:center">Cara kerjanya</h2>
+<h2 style="margin-top:130px;font-size:1.5rem;text-align:center">Cara kerjanya</h2>
 <ol class="steps">
   <li><strong>Buat akun</strong><span>Supaya hasilmu tersimpan.</span></li>
   <li><strong>Jawab kuis</strong><span>Pilih jawaban yang paling mirip kebiasaanmu.</span></li>
