@@ -1,151 +1,288 @@
 <?php
 /*
-  File: jenis.php
-  Keterangan: Halaman untuk menampilkan informasi jenis gaya belajar
-  (Visual, Auditori, Kinestetik) beserta ciri-ciri dan tips belajarnya
-  dalam bentuk tab interaktif.
+  File: jenis1.php
+  Keterangan: Halaman informasi jenis gaya belajar
+  Visual, Auditori, dan Kinestetik.
 */
 
-require __DIR__ . '/config/koneksi.php';
+require __DIR__ . '/../config/koneksi.php';
 
-// Data konten jenis gaya belajar (Visual, Auditori, Kinestetik)
 $daftar_gaya = [
     [
         'kode' => 'V',
         'nama' => 'Visual',
-        'pengertian' => 'Orang visual menyerap informasi paling baik lewat penglihatan: gambar, warna, diagram, dan tata letak yang rapi.',
+
+        'awal' => 'Gaya belajar visual merupakan kecenderungan seseorang untuk lebih mudah menerima, memahami, dan mengingat informasi melalui penglihatan.',
+
+        'inti' => 'Gambar, warna, tulisan, diagram, grafik, dan peta konsep',
+
+        'akhir' => 'dapat membantu seseorang memahami materi dengan lebih jelas. Seseorang dengan kecenderungan visual biasanya lebih nyaman ketika materi pembelajaran disajikan secara terstruktur dan memiliki tampilan yang menarik.',
+
         'ciri' => [
-            'Mudah mengingat wajah, bentuk, dan warna',
-            'Suka membuat catatan berwarna dan bergambar',
-            'Lebih paham saat melihat peta, grafik, atau slide',
-            'Sulit fokus kalau hanya mendengar ceramah panjang'
+            'Lebih mudah memahami informasi melalui gambar, ilustrasi, diagram, dan grafik.',
+            'Cenderung mengingat informasi berdasarkan bentuk, warna, simbol, dan tampilan yang pernah dilihat.',
+            'Menyukai catatan yang rapi, terstruktur, serta menggunakan warna untuk membedakan informasi penting.',
+            'Lebih mudah memahami materi apabila disertai contoh visual seperti gambar, tabel, atau presentasi.',
+            'Cenderung memperhatikan detail tampilan dan tata letak ketika mempelajari suatu informasi.'
         ],
+
         'tips' => [
-            'Buat mind map dan diagram alur',
-            'Pakai stabilo dengan kode warna',
-            'Tonton video penjelasan',
-            'Ubah angka dan teks menjadi tabel atau grafik'
+            'Gunakan mind map atau peta konsep untuk menghubungkan berbagai informasi dalam satu materi.',
+            'Manfaatkan stabilo atau pulpen berwarna untuk menandai bagian penting pada catatan.',
+            'Ubah informasi yang panjang menjadi diagram, tabel, bagan, atau gambar sederhana.',
+            'Gunakan video pembelajaran dan ilustrasi untuk membantu memahami materi yang sulit.',
+            'Buat rangkuman dengan susunan yang rapi agar informasi lebih mudah dipelajari kembali.'
         ],
-        'bidang' => 'Desainer, arsitek, dan pekerjaan yang banyak memakai visual.'
+
+        'pekerjaan' => [
+            'Desainer Grafis',
+            'Ilustrator',
+            'Arsitek',
+            'Fotografer',
+            'Desainer Interior'
+        ]
     ],
+
     [
         'kode' => 'A',
         'nama' => 'Auditori',
-        'pengertian' => 'Orang auditori menyerap informasi paling baik lewat pendengaran: penjelasan lisan, diskusi, dan irama.',
+
+        'awal' => 'Gaya belajar auditori merupakan kecenderungan seseorang untuk lebih mudah menerima, memahami, dan mengingat informasi melalui pendengaran.',
+
+        'inti' => 'Penjelasan secara lisan, percakapan, diskusi, dan rekaman suara',
+
+        'akhir' => 'dapat membantu proses memahami materi. Seseorang dengan kecenderungan auditori biasanya merasa lebih terbantu ketika dapat mendengarkan penjelasan dan membicarakan kembali informasi yang telah dipelajari.',
+
         'ciri' => [
-            'Mudah mengingat percakapan dan penjelasan',
-            'Suka berdiskusi dan bertanya',
-            'Sering membaca sambil bersuara',
-            'Mudah terganggu oleh suara bising'
+            'Lebih mudah memahami materi ketika mendengarkan penjelasan secara langsung.',
+            'Cenderung mengingat percakapan, instruksi lisan, dan informasi yang pernah didengar.',
+            'Menyukai kegiatan diskusi, tanya jawab, dan belajar bersama orang lain.',
+            'Sering membaca materi dengan suara atau mengulang informasi secara lisan.',
+            'Lebih mudah berkonsentrasi ketika suasana belajar tidak terlalu bising.'
         ],
+
         'tips' => [
-            'Jelaskan ulang materi dengan suara',
-            'Rekam rangkuman, lalu dengarkan ulang',
-            'Belajar dalam kelompok diskusi',
-            'Dengarkan podcast atau materi audio'
+            'Dengarkan penjelasan guru atau dosen dengan saksama dan catat poin-poin pentingnya.',
+            'Coba jelaskan kembali materi menggunakan kata-kata sendiri secara lisan.',
+            'Gunakan rekaman suara berisi rangkuman materi untuk didengarkan kembali.',
+            'Ikut dalam kelompok diskusi agar dapat bertukar pendapat dan memahami materi.',
+            'Manfaatkan podcast atau video pembelajaran yang memiliki penjelasan suara.'
         ],
-        'bidang' => 'Pembicara, pengajar, dan pekerjaan yang banyak berkomunikasi lisan.'
+
+        'pekerjaan' => [
+            'Penyiar Radio',
+            'Presenter',
+            'Guru atau Pengajar',
+            'Penerjemah Bahasa',
+            'Podcaster'
+        ]
     ],
+
     [
         'kode' => 'K',
         'nama' => 'Kinestetik',
-        'pengertian' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
+
+        'awal' => 'Gaya belajar kinestetik merupakan kecenderungan seseorang untuk lebih mudah menerima, memahami, dan mengingat informasi melalui aktivitas fisik, gerakan, dan pengalaman secara langsung.',
+
+        'inti' => 'Praktik, percobaan, simulasi, dan kegiatan yang melibatkan pengalaman nyata',
+
+        'akhir' => 'dapat membantu proses memahami materi. Seseorang dengan kecenderungan kinestetik biasanya lebih menyukai pembelajaran yang memberikan kesempatan untuk mencoba dan melakukan sesuatu secara langsung.',
+
         'ciri' => [
-            'Sulit duduk diam dalam waktu lama',
-            'Lebih paham setelah mencoba sendiri',
-            'Suka praktik, eksperimen, dan simulasi',
-            'Sering bergerak atau memegang benda saat berpikir'
+            'Lebih mudah memahami materi setelah mencoba atau mempraktikkannya secara langsung.',
+            'Menyukai kegiatan pembelajaran yang melibatkan gerakan, aktivitas, dan pengalaman nyata.',
+            'Cenderung lebih tertarik pada praktik dan eksperimen dibandingkan hanya membaca teori.',
+            'Senang menggunakan alat peraga atau benda nyata untuk memahami suatu konsep.',
+            'Lebih nyaman belajar dengan aktivitas yang bervariasi dan tidak hanya duduk diam dalam waktu lama.'
         ],
+
         'tips' => [
-            'Perbanyak latihan soal dan praktik',
-            'Belajar sambil berjalan atau berdiri',
-            'Pakai benda nyata sebagai alat peraga',
-            'Istirahat singkat untuk bergerak tiap 25 menit'
+            'Perbanyak latihan soal, praktik, dan kegiatan langsung yang berhubungan dengan materi.',
+            'Gunakan simulasi, eksperimen, atau alat peraga untuk memahami konsep pembelajaran.',
+            'Cobalah membuat proyek sederhana agar materi dapat dipelajari melalui pengalaman.',
+            'Selingi kegiatan belajar dengan jeda singkat untuk bergerak dan menyegarkan pikiran.',
+            'Hubungkan materi yang dipelajari dengan contoh kegiatan dalam kehidupan sehari-hari.'
         ],
-        'bidang' => 'Teknisi, atlet, dan pekerjaan yang banyak praktik lapangan.'
+
+        'pekerjaan' => [
+            'Koki atau Chef',
+            'Teknisi',
+            'Teknisi Laboratorium',
+            'Pelatih Olahraga',
+            'Pengrajin'
+        ]
     ]
 ];
 
 $judul = 'Jenis Gaya Belajar';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
-<h1 class="s" style="text-align:center">Jenis gaya belajar</h1>
-<p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
-
-<div class="tabs" role="tablist">
-  <?php foreach ($daftar_gaya as $i => $g) { ?>
-    <?php
-      $kodeKecil = strtolower($g['kode']);
-      if ($i === 0) {
-          $statusAktif = 'true';
-      } else {
-          $statusAktif = 'false';
-      }
-    ?>
-    <button type="button" role="tab" class="<?= e($kodeKecil) ?>" data-kode="<?= e($g['kode']) ?>" data-k="<?= e($kodeKecil) ?>" aria-selected="<?= e($statusAktif) ?>">
-      <?= e($g['nama']) ?>
-    </button>
-  <?php } ?>
-</div>
-
-<?php foreach ($daftar_gaya as $i => $g) { ?>
-  <?php
-    $kodeKecil = strtolower($g['kode']);
-    if ($i === 0) {
-        $atributHidden = '';
-    } else {
-        $atributHidden = ' hidden';
+<!-- Pengaturan lebar teks pengantar -->
+<style>
+    p.sub {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
     }
-  ?>
-  <article class="panel <?= e($kodeKecil) ?>" id="p-<?= e($g['kode']) ?>" role="tabpanel"<?= $atributHidden ?>>
+</style>
 
-    <div class="bubble">
-      <h2><?= e($g['nama']) ?></h2>
-      <p><?= e($g['pengertian']) ?></p>
-    </div>
+<!-- Judul Halaman -->
+<h1 class="s">Jenis gaya belajar</h1>
 
-    <h3 class="sec">Ciri-ciri dan cara belajar</h3>
-
-    <ul class="tips">
-      <?php foreach ($g['ciri'] as $ciri_item) { ?>
-        <li><?= e($ciri_item) ?></li>
-      <?php } ?>
-
-      <?php foreach ($g['tips'] as $tips_item) { ?>
-        <li><?= e($tips_item) ?></li>
-      <?php } ?>
-    </ul>
-
-  </article>
-<?php } ?>
-
-<p style="margin-top:18px">
-  <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">Cari tahu gaya belajarmu</a>
+<p class="sub">
+    Setiap orang memiliki kecenderungan yang berbeda dalam menerima dan memahami informasi.
+    Kenali tiga jenis gaya belajar berikut untuk mengetahui cara belajar yang dapat membantumu memahami materi dengan baik.
 </p>
 
+<!-- Tombol Tab -->
+<div class="tabs" role="tablist">
+
+    <?php foreach ($daftar_gaya as $i => $g): ?>
+
+        <?php
+            $kodeKecil = strtolower($g['kode']);
+            $statusAktif = ($i === 0) ? 'true' : 'false';
+        ?>
+
+        <button
+            type="button"
+            role="tab"
+            class="<?= $kodeKecil ?>"
+            data-kode="<?= $g['kode'] ?>"
+            data-k="<?= $kodeKecil ?>"
+            aria-selected="<?= $statusAktif ?>"
+        >
+            <?= htmlspecialchars($g['nama']) ?>
+        </button>
+
+    <?php endforeach; ?>
+
+</div>
+
+<!-- Panel Konten -->
+<?php foreach ($daftar_gaya as $i => $g): ?>
+
+    <?php
+        $kodeKecil = strtolower($g['kode']);
+        $atributHidden = ($i === 0) ? '' : 'hidden';
+    ?>
+
+    <article
+        class="panel <?= $kodeKecil ?>"
+        id="p-<?= $g['kode'] ?>"
+        role="tabpanel"
+        <?= $atributHidden ?>
+    >
+
+        <!-- Pengertian -->
+        <div class="bubble">
+
+            <h2>Gaya Belajar <?= htmlspecialchars($g['nama']) ?></h2>
+
+            <p>
+                <?= htmlspecialchars($g['awal']) ?>
+                <strong><?= htmlspecialchars($g['inti']) ?></strong>
+                <?= htmlspecialchars($g['akhir']) ?>
+            </p>
+
+        </div>
+
+        <!-- Ciri-Ciri -->
+        <h3 class="sec">
+            Ciri-Ciri Gaya Belajar <?= htmlspecialchars($g['nama']) ?>
+        </h3>
+
+        <ul class="tips">
+
+            <?php foreach ($g['ciri'] as $ciri_item): ?>
+
+                <li><?= htmlspecialchars($ciri_item) ?></li>
+
+            <?php endforeach; ?>
+
+        </ul>
+
+        <!-- Tips Belajar -->
+        <h3 class="sec">Tips Belajar yang Dapat Dilakukan</h3>
+
+        <ul class="tips">
+
+            <?php foreach ($g['tips'] as $tips_item): ?>
+
+                <li><?= htmlspecialchars($tips_item) ?></li>
+
+            <?php endforeach; ?>
+
+        </ul>
+
+        <!-- Contoh Bidang Pekerjaan -->
+        <h3 class="sec">Contoh Bidang Pekerjaan yang Sesuai</h3>
+
+        <ul class="tips">
+
+            <?php foreach ($g['pekerjaan'] as $pekerjaan_item): ?>
+
+                <li><?= htmlspecialchars($pekerjaan_item) ?></li>
+
+            <?php endforeach; ?>
+
+        </ul>
+
+    </article>
+
+<?php endforeach; ?>
+
+<!-- Catatan dengan jarak satu baris -->
+<div class="bubble" style="margin-top: 1em;">
+
+    <p>
+        <strong>Catatan:</strong>
+        Gaya belajar bukan kategori yang mutlak.
+        Seseorang dapat memiliki lebih dari satu kecenderungan
+        gaya belajar. Oleh karena itu, gunakan berbagai metode
+        belajar sesuai kebutuhan dan jenis materi yang sedang dipelajari.
+    </p>
+
+</div>
+
+<!-- Tombol Menuju Kuis -->
+<p style="margin-top:18px">
+    <a class="btn" href="<?= url('/petunjuk.php') ?>">
+        Cari tahu gaya belajarmu
+    </a>
+</p>
+
+<!-- JavaScript Tab -->
 <script>
-  // Mengatur perpindahan tab antara Visual, Auditori, dan Kinestetik
-  const semuaTombolTab = document.querySelectorAll('.tabs button');
-  const semuaPanelKonten = document.querySelectorAll('.panel');
+    const semuaTombolTab = document.querySelectorAll('.tabs button');
+    const semuaPanelKonten = document.querySelectorAll('.panel');
 
-  semuaTombolTab.forEach(function(tombol) {
-    tombol.onclick = function() {
-      semuaTombolTab.forEach(function(t) {
-        t.setAttribute('aria-selected', 'false');
-      });
-      tombol.setAttribute('aria-selected', 'true');
+    semuaTombolTab.forEach(function(tombol) {
 
-      const kodePilihan = tombol.getAttribute('data-kode');
-      semuaPanelKonten.forEach(function(panel) {
-        if (panel.id === 'p-' + kodePilihan) {
-          panel.removeAttribute('hidden');
-        } else {
-          panel.setAttribute('hidden', 'true');
-        }
-      });
-    };
-  });
+        tombol.onclick = function() {
+
+            semuaTombolTab.forEach(function(t) {
+                t.setAttribute('aria-selected', 'false');
+            });
+
+            tombol.setAttribute('aria-selected', 'true');
+
+            const kodePilihan = tombol.getAttribute('data-kode');
+
+            semuaPanelKonten.forEach(function(panel) {
+
+                if (panel.id === 'p-' + kodePilihan) {
+                    panel.removeAttribute('hidden');
+                } else {
+                    panel.setAttribute('hidden', 'true');
+                }
+
+            });
+
+        };
+
+    });
 </script>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>
