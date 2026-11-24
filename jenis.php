@@ -1,6 +1,6 @@
 <?php
 /*
-  File: jenis.php
+  File: jenis1.php
   Keterangan: Halaman informasi jenis gaya belajar
   Visual, Auditori, dan Kinestetik.
 */
