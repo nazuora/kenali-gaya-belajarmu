@@ -214,7 +214,7 @@ require __DIR__ . '/includes/header.php';
           Simpan Perubahan
         </button>
 
-        <a class="btn ghost" href="<?= htmlspecialchars(url('/keluar.php')) ?>">
+        <a class="btn ghost" href="<?= htmlspecialchars(url('/keluar.php')) ?>"onclick="return confirm('Apakah kamu yakin ingin keluar dari akun ini?');">
           Keluar
         </a>
       </div>
@@ -233,7 +233,7 @@ require __DIR__ . '/includes/header.php';
 
       <form
         method="post"
-        onsubmit="return confirm('Yakin ingin menghapus akun? Tindakan ini tidak dapat dibatalkan.')"
+        onsubmit="return confirm('PERINGATAN: Semua data akun dan seluruh riwayat kuis kamu akan dihapus secara permanen. Apakah kamu benar-benar yakin ingin menghapus akun ini?')"
       >
         <?= csrf_field() ?>
         <input type="hidden" name="aksi" value="hapus_akun">
