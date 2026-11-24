@@ -1,9 +1,8 @@
-
 <?php
 /*
   File: profil.php
-  Keterangan: Halaman untuk menampilkan dan mengelola informasi profil
-  serta pengaturan akun pengguna yang sedang masuk.
+  Keterangan: Menampilkan dan mengelola informasi profil pengguna (ubah nama,
+  unggah foto profil, serta hapus akun) yang sudah login.
 */
 
 require __DIR__ . '/config/koneksi.php';
@@ -11,13 +10,12 @@ require __DIR__ . '/config/koneksi.php';
 wajib_login();
 
 $id_user = (int)$_SESSION['user']['id'];
-
 $folder_tujuan = __DIR__ . '/uploads/';
 $maks_ukuran = 2 * 1024 * 1024;
 
-// Mengambil data pengguna
+// Mengambil data pengguna dari database berdasarkan ID sesi
 function ambil_data_user($db, $id_user) {
-    $query = "SELECT nama, email, password_hash, foto FROM users WHERE id = ?";
+    $query = 'SELECT nama, email, password_hash, foto FROM users WHERE id = ?';
     $stmt = $db->prepare($query);
     $stmt->bind_param('i', $id_user);
     $stmt->execute();
@@ -29,27 +27,44 @@ $user = ambil_data_user($db, $id_user);
 $pesan = '';
 $error = '';
 
-// Memproses form
+// Memproses pengiriman form (simpan perubahan profil atau hapus akun)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
 
-    $aksi = $_POST['aksi'] ?? '';
+    if (isset($_POST['aksi'])) {
+        $aksi = $_POST['aksi'];
+    } else {
+        $aksi = '';
+    }
 
-    // SIMPAN PERUBAHAN PROFIL
+    // 1. Simpan perubahan nama dan/atau foto profil
     if ($aksi === 'simpan') {
-        $nama_baru = trim($_POST['nama'] ?? '');
-        $foto_baru = $user['foto'];
+        if (isset($_POST['nama'])) {
+            $nama_baru = trim($_POST['nama']);
+        } else {
+            $nama_baru = '';
+        }
 
-        if (strlen($nama_baru) < 2) {
+        if (isset($user['foto'])) {
+            $foto_baru = $user['foto'];
+        } else {
+            $foto_baru = '';
+        }
+
+        if (mb_strlen($nama_baru) < 2) {
             $error = 'Nama harus diisi minimal 2 huruf.';
         }
 
-        // Memproses foto profil
+        $ada_file_foto = false;
         if (
-            $error === '' &&
             isset($_FILES['foto']) &&
+            isset($_FILES['foto']['error']) &&
             $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE
         ) {
+            $ada_file_foto = true;
+        }
+
+        if ($error === '' && $ada_file_foto) {
             $file_foto = $_FILES['foto'];
 
             if ($file_foto['error'] !== UPLOAD_ERR_OK) {
@@ -57,10 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($file_foto['size'] > $maks_ukuran) {
                 $error = 'Ukuran foto terlalu besar, maksimal 2 MB.';
             } else {
-                $ekstensi_file = strtolower(
-                    pathinfo($file_foto['name'], PATHINFO_EXTENSION)
-                );
-
+                $ekstensi_file = strtolower(pathinfo($file_foto['name'], PATHINFO_EXTENSION));
                 $ekstensi_diizinkan = ['jpg', 'jpeg', 'png', 'webp'];
 
                 if (!in_array($ekstensi_file, $ekstensi_diizinkan, true)) {
@@ -68,10 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $nama_file_unik = 'foto_' . $id_user . '_' . time() . '.' . $ekstensi_file;
 
-                    if (move_uploaded_file(
-                        $file_foto['tmp_name'],
-                        $folder_tujuan . $nama_file_unik
-                    )) {
+                    if (move_uploaded_file($file_foto['tmp_name'], $folder_tujuan . $nama_file_unik)) {
                         if (
                             !empty($user['foto']) &&
                             file_exists($folder_tujuan . $user['foto'])
@@ -87,9 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Menyimpan perubahan ke database
         if ($error === '') {
-            $query_update = "UPDATE users SET nama = ?, foto = ? WHERE id = ?";
+            $query_update = 'UPDATE users SET nama = ?, foto = ? WHERE id = ?';
             $stmt = $db->prepare($query_update);
             $stmt->bind_param('ssi', $nama_baru, $foto_baru, $id_user);
             $stmt->execute();
@@ -101,14 +109,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // HAPUS AKUN
+    // 2. Hapus akun pengguna setelah verifikasi kata sandi
     if ($aksi === 'hapus_akun') {
-        $sandi_input = $_POST['sandi'] ?? '';
+        if (isset($_POST['sandi'])) {
+            $sandi_input = $_POST['sandi'];
+        } else {
+            $sandi_input = '';
+        }
 
         if (!password_verify($sandi_input, $user['password_hash'])) {
             $error = 'Kata sandi salah! Akun batal dihapus.';
         } else {
-            // Menghapus foto profil
+            // Hapus dulu riwayat kuis milik pengguna agar tidak terbentur foreign key
+            $query_hapus_riwayat = 'DELETE FROM hasil_kuis WHERE user_id = ?';
+            $stmt_riwayat = $db->prepare($query_hapus_riwayat);
+            $stmt_riwayat->bind_param('i', $id_user);
+            $stmt_riwayat->execute();
+
+            // Hapus file foto profil jika ada
             if (
                 !empty($user['foto']) &&
                 file_exists($folder_tujuan . $user['foto'])
@@ -116,13 +134,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unlink($folder_tujuan . $user['foto']);
             }
 
-            // Menghapus akun pengguna
-            $query_hapus = "DELETE FROM users WHERE id = ?";
+            // Hapus akun pengguna dari tabel users
+            $query_hapus = 'DELETE FROM users WHERE id = ?';
             $stmt = $db->prepare($query_hapus);
             $stmt->bind_param('i', $id_user);
             $stmt->execute();
 
-            // Mengakhiri sesi login
+            // Bersihkan sesi login dan arahkan ke halaman utama
             $_SESSION = [];
             session_destroy();
 
@@ -130,6 +148,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     }
+}
+
+if (isset($user['nama']) && $user['nama'] !== '') {
+    $nama_tampil = $user['nama'];
+    $inisial_nama = strtoupper(mb_substr($user['nama'], 0, 1));
+} else {
+    $nama_tampil = '';
+    $inisial_nama = '?';
 }
 
 $judul = 'Profil Pengguna';
@@ -142,20 +168,18 @@ require __DIR__ . '/includes/header.php';
 
   <?php if ($pesan !== ''): ?>
     <div class="msg" role="status">
-      <?= htmlspecialchars($pesan) ?>
+      <?= e($pesan) ?>
     </div>
   <?php endif; ?>
 
   <?php if ($error !== ''): ?>
     <div class="err" role="alert">
-      <?= htmlspecialchars($error) ?>
+      <?= e($error) ?>
     </div>
   <?php endif; ?>
 
-  <!-- KARTU PROFIL -->
   <div class="card">
 
-    <!-- FORM EDIT PROFIL -->
     <form method="post" enctype="multipart/form-data" novalidate>
       <?= csrf_field() ?>
       <input type="hidden" name="aksi" value="simpan">
@@ -165,15 +189,15 @@ require __DIR__ . '/includes/header.php';
           <?php if (!empty($user['foto'])): ?>
             <img
               alt="Foto Profil"
-              src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($user['foto']) ?>"
+              src="<?= e(url('/uploads/' . $user['foto'])) ?>"
             >
           <?php else: ?>
-            <?= htmlspecialchars(strtoupper(substr($user['nama'], 0, 1))) ?>
+            <?= e($inisial_nama) ?>
           <?php endif; ?>
         </div>
 
         <div>
-          <strong><?= htmlspecialchars($user['nama']) ?></strong><br>
+          <strong><?= e($nama_tampil) ?></strong><br>
 
           <label class="file">
             Ganti foto
@@ -192,7 +216,7 @@ require __DIR__ . '/includes/header.php';
         class="t"
         id="nama"
         name="nama"
-        value="<?= htmlspecialchars($user['nama']) ?>"
+        value="<?= e($nama_tampil) ?>"
         autocomplete="name"
       >
 
@@ -200,7 +224,7 @@ require __DIR__ . '/includes/header.php';
       <input
         class="t"
         id="email"
-        value="<?= htmlspecialchars($user['email']) ?>"
+        value="<?= e($user['email']) ?>"
         readonly
         aria-describedby="petunjuk"
       >
@@ -214,16 +238,14 @@ require __DIR__ . '/includes/header.php';
           Simpan Perubahan
         </button>
 
-        <a class="btn ghost" href="<?= htmlspecialchars(url('/keluar.php')) ?>">
+        <a class="btn ghost" href="<?= e(url('/keluar.php')) ?>">
           Keluar
         </a>
       </div>
     </form>
 
-    <!-- PEMISAH BAGIAN -->
     <div style="border-top:1px solid var(--line);margin:22px 0"></div>
 
-    <!-- BAGIAN HAPUS AKUN DALAM KARTU YANG SAMA -->
     <div>
       <h2 style="margin:0 0 8px">Hapus Akun</h2>
 
@@ -266,7 +288,9 @@ require __DIR__ . '/includes/header.php';
 document.getElementById('foto').onchange = function(event) {
     const file = event.target.files[0];
 
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     const reader = new FileReader();
 
