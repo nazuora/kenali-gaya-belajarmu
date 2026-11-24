@@ -1,20 +1,19 @@
 <?php
-/* 
+/*
   File: daftar.php
-  Keterangan: Halaman pendaftaran sudah digabung ke dalam halaman masuk 
-  dengan sistem tab. File ini bertugas untuk mengalihkan pengunjung 
-  secara otomatis ke halaman masuk pada tab daftar.
+  Keterangan: Mengalihkan pengunjung secara otomatis ke halaman masuk
+  pada tab daftar karena form pendaftaran sudah digabung ke dalam masuk.php.
 */
 
-// 1. Panggil file koneksi database terlebih dahulu
 require __DIR__ . '/config/koneksi.php';
 
-// 2. Siapkan alamat tujuan pengalihan (menuju halaman masuk tab daftar)
+// Siapkan alamat tujuan pengalihan ke halaman masuk tab daftar
 $tujuan_halaman = url('/masuk.php?tab=daftar');
 
-// 3. Jalankan perintah pengalihan browser
-header('Location: ' . $tujuan_hikaluan ?? $tujuan_halaman);
+if (isset($tujuan_halaman) && $tujuan_halaman !== '') {
+    header('Location: ' . $tujuan_halaman);
+} else {
+    header('Location: ' . url('/masuk.php'));
+}
 
-// 4. Hentikan eksekusi skrip agar tidak ada proses lain yang berjalan
 exit;
-?>
