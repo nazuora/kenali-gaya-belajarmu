@@ -15,7 +15,7 @@ require 'config/koneksi.php';
     <!-- Menghubungkan ke file CSS terpisah -->
     <link
       rel="stylesheet"
-      href="styleprofil.css"
+      href="assets/style.css"
     />
   </head>
   <body>
