@@ -238,11 +238,7 @@ require __DIR__ . '/includes/header.php';
           Simpan Perubahan
         </button>
 
-<<<<<<< HEAD
-        <a class="btn ghost" href="<?= htmlspecialchars(url('/keluar.php')) ?>"onclick="return confirm('Apakah kamu yakin ingin keluar dari akun ini?');">
-=======
-        <a class="btn ghost" href="<?= e(url('/keluar.php')) ?>">
->>>>>>> e0a6c693dd9b8578233555a81b2f8bcf205c61db
+        <a class="btn ghost" href="<?= htmlspecialchars(url('/keluar.php')) ?>" onclick="return confirm('Apakah kamu yakin ingin keluar dari akun ini?');">
           Keluar
         </a>
       </div>
