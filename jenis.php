@@ -1,153 +1,168 @@
 <?php
-/* 
-  File: jenis.php
-  Keterangan: Halaman untuk menampilkan informasi jenis gaya belajar 
-  (Visual, Auditori, Kinestetik) beserta ciri-ciri dan tips belajarnya 
-  dalam bentuk tab interaktif yang ramah pengguna.
+/*
+  File: riwayat.php
+  Keterangan: Menampilkan daftar riwayat pengerjaan kuis pengguna,
+  tautan detail hasil, serta fitur hapus riwayat tanpa grafik.
 */
 
-// Memanggil file koneksi database (jika diperlukan) dan fungsi ikon
 require __DIR__ . '/config/koneksi.php';
 
-// Data konten halaman Jenis Gaya Belajar dibuat manual di dalam array agar mudah dibaca
-$daftar_gaya = [
-    [
-        'kode' => 'V',
-        'nama' => 'Visual',
-        'pengertian' => 'Orang visual menyerap informasi paling baik lewat penglihatan: gambar, warna, diagram, dan tata letak yang rapi.',
-        'ciri' => [
-            'Mudah mengingat wajah, bentuk, dan warna',
-            'Suka membuat catatan berwarna dan bergambar',
-            'Lebih paham saat melihat peta, grafik, atau slide',
-            'Sulit fokus kalau hanya mendengar ceramah panjang'
-        ],
-        'tips' => [
-            'Buat mind map dan diagram alur',
-            'Pakai stabilo dengan kode warna',
-            'Tonton video penjelasan',
-            'Ubah angka dan teks menjadi tabel atau grafik'
-        ],
-        'bidang' => 'Desainer, arsitek, dan pekerjaan yang banyak memakai visual.'
-    ],
-    [
-        'kode' => 'A',
-        'nama' => 'Auditori',
-        'pengertian' => 'Orang auditori menyerap informasi paling baik lewat pendengaran: penjelasan lisan, diskusi, dan irama.',
-        'ciri' => [
-            'Mudah mengingat percakapan dan penjelasan',
-            'Suka berdiskusi dan bertanya',
-            'Sering membaca sambil bersuara',
-            'Mudah terganggu oleh suara bising'
-        ],
-        'tips' => [
-            'Jelaskan ulang materi dengan suara',
-            'Rekam rangkuman, lalu dengarkan ulang',
-            'Belajar dalam kelompok diskusi',
-            'Dengarkan podcast atau materi audio'
-        ],
-        'bidang' => 'Pembicara, pengajar, dan pekerjaan yang banyak berkomunikasi lisan.'
-    ],
-    [
-        'kode' => 'K',
-        'nama' => 'Kinestetik',
-        'pengertian' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
-        'ciri' => [
-            'Sulit duduk diam dalam waktu lama',
-            'Lebih paham setelah mencoba sendiri',
-            'Suka praktik, eksperimen, dan simulasi',
-            'Sering bergerak atau memegang benda saat berpikir'
-        ],
-        'tips' => [
-            'Perbanyak latihan soal dan praktik',
-            'Belajar sambil berjalan atau berdiri',
-            'Pakai benda nyata sebagai alat peraga',
-            'Istirahat singkat untuk bergerak tiap 25 menit'
-        ],
-        'bidang' => 'Teknisi, atlet, dan pekerjaan yang banyak praktik lapangan.'
-    ]
-];
+$login = false;
+if (isset($_SESSION['user']) && isset($_SESSION['user']['id'])) {
+    $login = true;
+}
 
-$judul = 'Jenis Gaya Belajar';
+if ($login) {
+    $uid = (int)$_SESSION['user']['id'];
+} else {
+    $uid = 0;
+}
+
+// Proses hapus satu catatan riwayat milik pengguna yang sedang login
+if ($login && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['aksi']) && $_POST['aksi'] === 'hapus') {
+        csrf_periksa();
+
+        if (isset($_POST['id'])) {
+            $id_riwayat = (int)$_POST['id'];
+        } else {
+            $id_riwayat = 0;
+        }
+
+        if ($id_riwayat > 0) {
+            $stmt = $db->prepare('DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?');
+            $stmt->bind_param('ii', $id_riwayat, $uid);
+            $stmt->execute();
+        }
+
+        header('Location: ' . url('/riwayat.php'));
+        exit;
+    }
+}
+
+// Ambil seluruh riwayat hasil kuis pengguna dari database
+$rows = [];
+
+if ($login) {
+    $stmt = $db->prepare('SELECT h.id, h.persen_visual, h.persen_auditori, h.persen_kinestetik, h.dibuat_pada, g.kode, g.nama AS gaya
+                          FROM hasil_kuis h
+                          JOIN gaya_belajar g ON g.id = h.gaya_utama_id
+                          WHERE h.user_id = ?
+                          ORDER BY h.dibuat_pada ASC, h.id ASC');
+    $stmt->bind_param('i', $uid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+    }
+}
+
+$jumlah_data = count($rows);
+
+$judul = 'Riwayat Kuis';
 require __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Bagian Judul Halaman -->
-<h1 class="s" style="text-align:center">Jenis gaya belajar</h1>
-<p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
+<div class="narrow" style="max-width: 720px;">
+  <h1 class="s">Riwayat kuismu</h1>
+  <p class="sub">Lihat riwayat hasil gaya belajarmu dari waktu ke waktu.</p>
 
-<!-- Bagian Tombol Tab Pilihan Gaya Belajar -->
-<div class="tabs" role="tablist">
-  <?php foreach ($daftar_gaya as $i => $g): ?>
-    <?php 
-        $kodeKecil = strtolower($g['kode']);
-        // Menentukan apakah tab ini aktif di awal (untuk tab pertama)
-        $statusAktif = ($i === 0) ? 'true' : 'false';
-    ?>
-    <button type="button" role="tab" class="<?= $kodeKecil ?>" data-kode="<?= $g['kode'] ?>" data-k="<?= $kodeKecil ?>" aria-selected="<?= $statusAktif ?>">
-      <?= htmlspecialchars($g['nama']) ?>
-    </button>
-  <?php endforeach; ?>
+  <?php if (!$login): ?>
+    <div class="empty">
+      <strong>Masuk dulu untuk melihat riwayat.</strong>
+      <p>Hasil kuis akan tersimpan dengan aman di akunmu.</p>
+      <a class="btn" href="<?= e(url('/masuk.php')) ?>">Masuk Sekarang</a>
+    </div>
+  <?php elseif ($jumlah_data === 0): ?>
+    <div class="empty">
+      <strong>Belum ada hasil kuis.</strong>
+      <p>Ayo kerjakan kuis pertamamu untuk mulai melacak gaya belajar.</p>
+      <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">Mulai Kuis</a>
+    </div>
+  <?php else: ?>
+    <!-- Daftar riwayat pengerjaan kuis -->
+    <?php foreach (array_reverse($rows) as $r): ?>
+      <div class="item">
+        <button type="button" class="head" aria-expanded="false">
+          <span class="pill"><?= e($r['gaya']) ?></span>
+          <span class="date"><?= e(tanggal_id($r['dibuat_pada'])) ?></span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="body hidden">
+          <div class="row">
+            <div class="lab">
+              <span>Visual</span>
+              <span><?= (int)$r['persen_visual'] ?>%</span>
+            </div>
+            <div class="track">
+              <div style="width: <?= (int)$r['persen_visual'] ?>%;"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="lab">
+              <span>Auditori</span>
+              <span><?= (int)$r['persen_auditori'] ?>%</span>
+            </div>
+            <div class="track">
+              <div style="width: <?= (int)$r['persen_auditori'] ?>%;"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="lab">
+              <span>Kinestetik</span>
+              <span><?= (int)$r['persen_kinestetik'] ?>%</span>
+            </div>
+            <div class="track">
+              <div style="width: <?= (int)$r['persen_kinestetik'] ?>%;"></div>
+            </div>
+          </div>
+
+          <!-- Tombol aksi -->
+          <div class="actions" style="justify-content:flex-start;align-items:center">
+
+            <a class="btn ghost" style="padding:8px 18px" href="<?= e(url('/jenis.php?gaya=' . $r['kode'])) ?>">
+              Lihat penjelasan <?= e($r['gaya']) ?>
+            </a>
+
+            <form method="post">
+              <?= csrf_field() ?>
+              <input type="hidden" name="aksi" value="hapus">
+              <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
+              <button type="button" class="btn red del" style="padding: 8px 18px;">
+                Hapus hasil ini
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  <?php endif; ?>
 </div>
 
-<!-- Bagian Panel Konten untuk Setiap Jenis Gaya Belajar -->
-<?php foreach ($daftar_gaya as $i => $g): ?>
-  <?php 
-      $kodeKecil = strtolower($g['kode']);
-      // Menyembunyikan panel selain panel pertama secara default
-      $atributHidden = ($i === 0) ? '' : 'hidden';
-  ?>
-  <article class="panel <?= $kodeKecil ?>" id="p-<?= $g['kode'] ?>" role="tabpanel" <?= $atributHidden ?>>
-    
-    <div class="bubble">
-      <h2><?= htmlspecialchars($g['nama']) ?></h2>
-      <p><?= htmlspecialchars($g['pengertian']) ?></p>
-    </div>
-
-       <h3 class="sec">Ciri-ciri dan cara belajar</h3>
-
-    <ul class="tips">
-      <?php foreach ($g['ciri'] as $ciri_item): ?>
-        <li><?= htmlspecialchars($ciri_item) ?></li>
-      <?php endforeach; ?>
-
-      <?php foreach ($g['tips'] as $tips_item): ?>
-        <li><?= htmlspecialchars($tips_item) ?></li>
-      <?php endforeach; ?>
-    </ul>
-
-  </article>
-<?php endforeach; ?>
-
-<!-- Tombol Navigasi ke Halaman Kuis -->
-<p style="margin-top:18px">
-    <a class="btn" href="<?= url('/petunjuk.php') ?>">Cari tahu gaya belajarmu</a>
-</p>
-
-<!-- Skrip JavaScript Sederhana untuk Mengatur Perpindahan Tab -->
 <script>
-  // Mengambil semua tombol tab yang ada
-  const semuaTombolTab = document.querySelectorAll('.tabs button');
-  const semuaPanelKonten = document.querySelectorAll('.panel');
+  // Toggle buka/tutup detail item dan konfirmasi dua kali klik sebelum hapus
+  document.querySelectorAll('.item').forEach(function(item) {
+    const head = item.querySelector('.head');
+    const body = item.querySelector('.body');
+    const delBtn = item.querySelector('.del');
 
-  semuaTombolTab.forEach(function(tombol) {
-    tombol.onclick = function() {
-      
-      // 1. Ubah status aria-selected pada semua tombol menjadi false, lalu jadikan true pada yang diklik
-      semuaTombolTab.forEach(function(t) {
-        t.setAttribute('aria-selected', 'false');
-      });
-      tombol.setAttribute('aria-selected', 'true');
+    head.onclick = function() {
+      const isOpen = head.getAttribute('aria-expanded') === 'true';
+      head.setAttribute('aria-expanded', !isOpen);
+      body.classList.toggle('hidden', isOpen);
+    };
 
-      // 2. Sembunyikan semua panel, lalu tampilkan panel yang kodenya cocok dengan tombol
-      const kodePilihan = tombol.getAttribute('data-kode');
-      semuaPanelKonten.forEach(function(panel) {
-        if (panel.id === 'p-' + kodePilihan) {
-          panel.removeAttribute('hidden');
-        } else {
-          panel.setAttribute('hidden', 'true');
-        }
-      });
-
+    delBtn.onclick = function() {
+      if (delBtn.dataset.sure) {
+        delBtn.closest('form').submit();
+      } else {
+        delBtn.dataset.sure = '1';
+        delBtn.textContent = 'Klik lagi untuk konfirmasi hapus';
+      }
     };
   });
 </script>

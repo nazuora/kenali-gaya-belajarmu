@@ -1,226 +1,375 @@
 <?php
-// Panggil koneksi database
+/*
+  File: hasil.php
+  Keterangan: Menampilkan hasil kuis gaya belajar (Visual, Auditori,
+  Kinestetik), persentase tiap gaya, ciri-ciri, tips belajar, serta
+  menyimpan hasil ke tabel hasil_kuis.
+*/
+
 require __DIR__ . '/config/koneksi.php';
 
-$login = !empty($_SESSION['user']);
-$uid   = $login ? (int)$_SESSION['user']['id'] : 0;
-$h     = null;
+if (empty($_SESSION['user'])) {
+    header('Location: ' . url('/masuk.php'));
+    exit;
+}
 
-// Cek apakah halaman diakses lewat tombol submit form kuis
+if (isset($_SESSION['user']['id'])) {
+    $userId = (int)$_SESSION['user']['id'];
+} else {
+    $userId = 0;
+}
+
+$daftarGaya = [
+    1 => [
+        'kode' => 'V',
+        'nama' => 'Visual',
+        'judul' => 'Sang Pengamat Visual (Visual)',
+        'deskripsi' => 'Orang visual menyerap informasi dengan baik melalui gambar, warna, dan penglihatan.',
+        'ciri' => [
+            'Mudah memahami gambar dan diagram.',
+            'Menyukai catatan yang rapi dan berwarna.',
+            'Senang membaca materi.',
+            'Mudah mengingat informasi visual.',
+            'Lebih nyaman belajar melalui demonstrasi.'
+        ],
+        'tips' => [
+            'Gunakan gambar dan diagram saat belajar.',
+            'Buat catatan dengan warna berbeda.',
+            'Gunakan mind map untuk merangkum materi.',
+            'Pelajari materi melalui video pembelajaran.'
+        ]
+    ],
+    2 => [
+        'kode' => 'A',
+        'nama' => 'Auditori',
+        'judul' => 'Sang Pendengar Aktif (Auditori)',
+        'deskripsi' => 'Orang auditori menyerap informasi dengan baik melalui suara, penjelasan, dan percakapan.',
+        'ciri' => [
+            'Mudah memahami penjelasan lisan.',
+            'Senang berdiskusi dengan orang lain.',
+            'Mudah mengingat informasi yang didengar.',
+            'Menyukai rekaman pembelajaran.',
+            'Senang membaca materi dengan suara.'
+        ],
+        'tips' => [
+            'Dengarkan rekaman materi pembelajaran.',
+            'Diskusikan pelajaran bersama teman.',
+            'Bacalah materi dengan suara.',
+            'Jelaskan kembali materi yang sudah dipelajari.'
+        ]
+    ],
+    3 => [
+        'kode' => 'K',
+        'nama' => 'Kinestetik',
+        'judul' => 'Sang Pembelajar Aktif (Kinestetik)',
+        'deskripsi' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
+        'ciri' => [
+            'Senang belajar melalui praktik.',
+            'Menyukai kegiatan langsung.',
+            'Mudah memahami contoh nyata.',
+            'Senang mencoba sesuatu secara mandiri.',
+            'Lebih nyaman belajar sambil melakukan aktivitas.'
+        ],
+        'tips' => [
+            'Perbanyak latihan soal dan praktik.',
+            'Belajar sambil berjalan atau berdiri.',
+            'Pakai benda nyata sebagai alat peraga.',
+            'Selingi belajar dengan aktivitas ringan.'
+        ]
+    ]
+];
+
+$hasil = null;
+$hasilPending = false;
+$pesanTersimpan = false;
+$pesanError = '';
+
+// Proses simpan hasil sementara ke tabel hasil_kuis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
-    $jawab = $_POST['q'] ?? [];
-    
-    // Ambil daftar ID pertanyaan dari database
-    $query_pertanyaan = $db->query('SELECT id FROM pertanyaan');
-    $ids = [];
-    while ($row = $query_pertanyaan->fetch_assoc()) {
-        $ids[] = $row['id'];
+
+    if (isset($_POST['aksi'])) {
+        $aksi = $_POST['aksi'];
+    } else {
+        $aksi = '';
     }
-    
-    $total = count($ids);
-    if ($total === 0) {
+
+    if ($aksi === 'simpan') {
+        if (isset($_SESSION['hasil_kuis_pending'])) {
+            $pending = $_SESSION['hasil_kuis_pending'];
+        } else {
+            $pending = null;
+        }
+
+        if (isset($pending['user_id'])) {
+            $pendingUserId = (int)$pending['user_id'];
+        } else {
+            $pendingUserId = 0;
+        }
+
+        if (!is_array($pending) || $pendingUserId !== $userId) {
+            header('Location: ' . url('/kuis.php'));
+            exit;
+        }
+
+        $persenV = (int)$pending['persen_visual'];
+        $persenA = (int)$pending['persen_auditori'];
+        $persenK = (int)$pending['persen_kinestetik'];
+        $gayaId = (int)$pending['gaya_utama_id'];
+
+        if (
+            $persenV < 0 || $persenV > 100 ||
+            $persenA < 0 || $persenA > 100 ||
+            $persenK < 0 || $persenK > 100 ||
+            !isset($daftarGaya[$gayaId])
+        ) {
+            header('Location: ' . url('/kuis.php'));
+            exit;
+        }
+
+        $stmt = $db->prepare(
+            'INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik) VALUES (?, ?, ?, ?, ?)'
+        );
+        $stmt->bind_param('iiiii', $userId, $gayaId, $persenV, $persenA, $persenK);
+
+        if ($stmt->execute()) {
+            $idBaru = (int)$db->insert_id;
+            unset($_SESSION['hasil_kuis_pending']);
+            $stmt->close();
+
+            header('Location: ' . url('/hasil.php?id=' . $idBaru . '&tersimpan=1'));
+            exit;
+        } else {
+            $pesanError = 'Hasil kuis gagal disimpan. Silakan coba kembali.';
+            $stmt->close();
+        }
+    }
+}
+
+// Mengambil hasil yang sudah tersimpan di database berdasarkan ID
+if (isset($_GET['id'])) {
+    $idHasil = (int)$_GET['id'];
+
+    $stmt = $db->prepare('SELECT * FROM hasil_kuis WHERE id = ? AND user_id = ? LIMIT 1');
+    $stmt->bind_param('ii', $idHasil, $userId);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    $hasil = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!$hasil) {
+        header('Location: ' . url('/riwayat.php'));
+        exit;
+    }
+
+    if (isset($_GET['tersimpan']) && $_GET['tersimpan'] == '1') {
+        $pesanTersimpan = true;
+    }
+} else {
+    if (isset($_SESSION['hasil_kuis_pending'])) {
+        $pending = $_SESSION['hasil_kuis_pending'];
+    } else {
+        $pending = null;
+    }
+
+    if (isset($pending['user_id'])) {
+        $pendingUserId = (int)$pending['user_id'];
+    } else {
+        $pendingUserId = 0;
+    }
+
+    if (!is_array($pending) || $pendingUserId !== $userId) {
         header('Location: ' . url('/kuis.php'));
         exit;
     }
 
-    // Hitung jawaban per kategori gaya belajar
-    // 1 = Visual, 2 = Auditori, 3 = Kinestetik
-    $hitung = [1 => 0, 2 => 0, 3 => 0];
-    foreach ($ids as $pid) {
-        $g = isset($jawab[$pid]) ? (int)$jawab[$pid] : 0;
-        if ($g < 1 || $g > 3) {
-            // Kalau ada soal yang belum dijawab, lempar balik ke halaman kuis
-            header('Location: ' . url('/kuis.php'));
-            exit;
-        }
-        $hitung[$g]++;
-    }
-
-    // Hitung persentase masing-masing gaya belajar
-    $pv = round(($hitung[1] / $total) * 100);
-    $pa = round(($hitung[2] / $total) * 100);
-    $pk = round(($hitung[3] / $total) * 100);
-    
-    // Cari nilai yang paling tinggi untuk menentukan gaya utama
-    $nilai_maksimal = max($hitung);
-    $pilihan_utama = array_keys($hitung, $nilai_maksimal);
-    $utama = $pilihan_utama[0]; // Jika seri, ambil ID terkecil
-
-    // Jika belum login, simpan sementara di session
-    if (!$login) {
-        $_SESSION['hasil_tertunda'] = [
-            'v' => $pv, 
-            'a' => $pa, 
-            'k' => $pk, 
-            'g' => (int)$utama, 
-            't' => time()
-        ];
-    }
-
-    // Jika sudah login, simpan permanen ke tabel hasil_kuis
-    if ($login) {
-        $stmt = $db->prepare('INSERT INTO hasil_kuis (user_id, persen_visual, persen_auditori, persen_kinestetik, gaya_utama_id) VALUES (?, ?, ?, ?, ?)');
-        $stmt->bind_param('iiiii', $uid, $pv, $pa, $pk, $utama);
-        $stmt->execute();
-        
-        $id_baru = $db->insert_id;
-        header('Location: ' . url('/hasil.php?id=' . $id_baru));
-        exit;
-    }
-
-    // Ambil keterangan hasil untuk tamu
-    $stmt = $db->prepare('SELECT kode, nama, julukan, kalimat_hasil, tips FROM gaya_belajar WHERE id = ?');
-    $stmt->bind_param('i', $utama);
-    $stmt->execute();
-    $h = $stmt->get_result()->fetch_assoc();
-    
-    if (!$h) {
-        http_response_code(500);
-        exit('Data gaya belajar belum ada.');
-    }
-    
-    $h['persen_visual'] = $pv;
-    $h['persen_auditori'] = $pa;
-    $h['persen_kinestetik'] = $pk;
-
-} else {
-    // Jika diakses melalui URL biasa (bukan POST), tampilkan hasil berdasarkan ID di URL
-    if (!$login) {
-        header('Location: ' . url('/masuk.php'));
-        exit;
-    }
-    
-    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-    $stmt = $db->prepare('SELECT h.persen_visual, h.persen_auditori, h.persen_kinestetik,
-                                 g.id AS gaya_id, g.kode, g.nama, g.julukan, g.kalimat_hasil, g.tips
-                          FROM hasil_kuis h
-                          JOIN gaya_belajar g ON g.id = h.gaya_utama_id
-                          WHERE h.id = ? AND h.user_id = ?');
-    $stmt->bind_param('ii', $id, $uid);
-    $stmt->execute();
-    $h = $stmt->get_result()->fetch_assoc();
-    
-    if (!$h) {
-        http_response_code(404);
-        exit('Hasil tidak ditemukan.');
-    }
+    $hasil = $pending;
+    $hasilPending = true;
 }
 
-// Daftar teks hasil kuis langsung di codingan (1 = Visual, 2 = Auditori, 3 = Kinestetik)
-$daftar_hasil_gaya = [
-    1 => [
-        'julukan'       => 'Sang Pengamat Visual',
-        'nama'          => 'Visual',
-        'kalimat_hasil' => 'Orang visual menyerap informasi paling baik lewat penglihatan: gambar, warna, diagram, dan tata letak yang rapi.',
-        'tips'          => [
-            'Buat mind map dan diagram alur',
-            'Pakai stabilo dengan kode warna',
-            'Tonton video penjelasan',
-            'Ubah angka dan teks menjadi tabel atau grafik',
-        ],
-    ],
-    2 => [
-        'julukan'       => 'Sang Pendengar Ulung',
-        'nama'          => 'Auditori',
-        'kalimat_hasil' => 'Orang auditori menyerap informasi paling baik lewat pendengaran: penjelasan lisan, diskusi, dan irama.',
-        'tips'          => [
-            'Baca teks atau materi pelajaran dengan bersuara keras',
-            'Dengarkan rekaman penjelasan atau podcast materi terkait',
-            'Bentuk kelompok diskusi untuk membahas bahan pelajaran bersama',
-        ],
-    ],
-    3 => [
-        'julukan'       => 'Sang Pembelajar Aktif',
-        'nama'          => 'Kinestetik',
-        'kalimat_hasil' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
-        'tips'          => [
-            'Perbanyak latihan soal dan praktik',
-            'Belajar sambil berjalan atau berdiri',
-            'Pakai benda nyata sebagai alat peraga',
-            'Istirahat singkat untuk bergerak tiap 25 menit',
-        ],
-    ],
-];
-
-// Menentukan ID gaya belajar dari hasil yang sedang dibuka
-$id_gaya = (int)($h['gaya_id'] ?? $utama ?? 0);
-$tips = [];
-
-if (isset($daftar_hasil_gaya[$id_gaya])) {
-    $h['julukan']       = $daftar_hasil_gaya[$id_gaya]['julukan'];
-    $h['nama']          = $daftar_hasil_gaya[$id_gaya]['nama'];
-    $h['kalimat_hasil'] = $daftar_hasil_gaya[$id_gaya]['kalimat_hasil'];
-    $tips               = $daftar_hasil_gaya[$id_gaya]['tips'];
-} else {
-    $baris_tips = explode("\n", (string)($h['tips'] ?? ''));
-    foreach ($baris_tips as $t) {
-        $t_bersih = trim($t);
-        if ($t_bersih !== '') {
-            $tips[] = $t_bersih;
-        }
-    }
+$gayaId = (int)$hasil['gaya_utama_id'];
+if (!isset($daftarGaya[$gayaId])) {
+    $gayaId = 1;
 }
+$gaya = $daftarGaya[$gayaId];
 
-// Data persentase untuk bar progres
-$bar = [
-    ['Visual',     (int)$h['persen_visual']],
-    ['Auditori',   (int)$h['persen_auditori']],
-    ['Kinestetik', (int)$h['persen_kinestetik']],
-];
+$persenV = (int)$hasil['persen_visual'];
+$persenA = (int)$hasil['persen_auditori'];
+$persenK = (int)$hasil['persen_kinestetik'];
 
-$judul = 'Hasil Kuis';
+$judul = 'Hasil Kuis Gaya Belajar';
 require __DIR__ . '/includes/header.php';
 ?>
 
-<div class="narrow">
+<style>
+    .hasil-kuis {
+        max-width: 850px;
+        margin: 30px auto;
+        padding: 10px 20px;
+    }
 
-  <section class="card" id="result" style="margin-top:18px">
-    <div class="badge">
-      <p>Gaya belajar utamamu</p>
-      <h1><?= e($h['julukan']) ?> (<?= e($h['nama']) ?>)</h1>
-      <p><?= e($h['kalimat_hasil']) ?></p>
+    .hasil-kuis .label-hasil {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .hasil-kuis h1 {
+        font-size: 36px;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .hasil-kuis .deskripsi {
+        line-height: 1.7;
+        margin-bottom: 30px;
+    }
+
+    .persentase-item {
+        margin-bottom: 22px;
+    }
+
+    .persentase-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .progress-track {
+        width: 100%;
+        height: 12px;
+        background: var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--text);
+        border-radius: 20px;
+    }
+
+    .hasil-kuis h2 {
+        margin-top: 32px;
+        margin-bottom: 18px;
+    }
+
+    .hasil-kuis ul {
+        padding-left: 28px;
+        line-height: 1.8;
+    }
+
+    .status-hasil {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    .tombol-hasil {
+        display: inline-block;
+        margin-top: 12px;
+    }
+
+    .aksi-hasil {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div class="hasil-kuis">
+
+    <p class="label-hasil">Gaya belajar utamamu</p>
+
+    <h1><?= e($gaya['judul']) ?></h1>
+
+    <p class="deskripsi">
+        <?= e($gaya['deskripsi']) ?>
+    </p>
+
+    <div class="persentase-item">
+        <div class="persentase-label">
+            <span>Visual</span>
+            <span><?= e($persenV) ?>%</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:<?= e($persenV) ?>%"></div>
+        </div>
     </div>
 
-    <?php foreach ($bar as $item): ?>
-      <?php 
-        $nama_kategori = $item[0];
-        $persen = $item[1];
-      ?>
-      <div class="row">
-        <div class="lab"><span><?= e($nama_kategori) ?></span><span><?= $persen ?>%</span></div>
-                <div class="track">
-          <div style="width:<?= $persen ?>%; background:#333;"></div>
+    <div class="persentase-item">
+        <div class="persentase-label">
+            <span>Auditori</span>
+            <span><?= e($persenA) ?>%</span>
         </div>
-      </div>
-    <?php endforeach; ?>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:<?= e($persenA) ?>%"></div>
+        </div>
+    </div>
 
-    <h2>Tips belajar untukmu</h2>
-    <ul class="tips">
-      <?php foreach ($tips as $t): ?>
-        <li><?= e($t) ?></li>
-      <?php endforeach; ?>
+    <div class="persentase-item">
+        <div class="persentase-label">
+            <span>Kinestetik</span>
+            <span><?= e($persenK) ?>%</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:<?= e($persenK) ?>%"></div>
+        </div>
+    </div>
+
+    <h2>Ciri-ciri gaya belajar</h2>
+
+    <ul>
+        <?php foreach ($gaya['ciri'] as $ciri) { ?>
+            <li><?= e($ciri) ?></li>
+        <?php } ?>
     </ul>
 
-    <?php if ($login): ?>
-      <div class="msg">Hasil tersimpan di Riwayat.</div>
-    <?php else: ?>
-      <div class="msg">
-        <span style="color:var(--muted)">Masuk agar hasil tersimpan di Riwayat. 
-          <a href="<?= e(url('/masuk.php')) ?>" style="color:var(--blue);font-weight:900">Masuk sekarang</a>
-        </span>
-      </div>
-    <?php endif; ?>
+    <h2>Tips belajar untukmu</h2>
 
-        <div class="actions">
-      <a class="btn ghost" href="<?= e(url('/petunjuk.php')) ?>">
-        Ulangi kuis
-      </a>
+    <ul>
+        <?php foreach ($gaya['tips'] as $tip) { ?>
+            <li><?= e($tip) ?></li>
+        <?php } ?>
+    </ul>
+
+    <?php if ($pesanTersimpan) { ?>
+        <p class="status-hasil" style="color:var(--ok)">
+            Hasil tersimpan di Riwayat.
+        </p>
+    <?php } ?>
+
+    <?php if ($pesanError !== '') { ?>
+        <p class="status-hasil" style="color:var(--err)">
+            <?= e($pesanError) ?>
+        </p>
+    <?php } ?>
+
+    <div class="aksi-hasil">
+
+        <?php if ($hasilPending) { ?>
+            <form method="POST">
+                <?= csrf_field() ?>
+                <input type="hidden" name="aksi" value="simpan">
+                <button type="submit" class="btn tombol-hasil">
+                    Simpan Hasil Quiz
+                </button>
+            </form>
+        <?php } ?>
+
+        <a href="<?= e(url('/jenis.php?gaya=' . $gaya['kode'])) ?>" class="btn tombol-hasil">
+            Lihat penjelasan <?= e($gaya['nama']) ?>
+        </a>
+
+        <a href="<?= e(url('/kuis.php')) ?>" class="btn tombol-hasil">
+            Ulangi kuis
+        </a>
+
     </div>
-  </section>
 
 </div>
-
-
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
