@@ -1,5 +1,10 @@
 <?php
-// admin/pertanyaan.php
+/*
+  File: admin/pertanyaan.php
+  Keterangan: Halaman panel admin untuk menambah, mengubah, dan menghapus
+  pertanyaan kuis serta pilihan jawaban berdasarkan gaya belajar.
+*/
+
 require __DIR__ . '/../config/koneksi.php';
 wajib_admin();
 
@@ -8,16 +13,51 @@ $galat = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
-    $aksi = $_POST['aksi'] ?? '';
+
+    if (isset($_POST['aksi'])) {
+        $aksi = $_POST['aksi'];
+    } else {
+        $aksi = '';
+    }
 
     if ($aksi === 'simpan') {
-        $id      = (int)($_POST['id'] ?? 0);
-        $teks    = trim($_POST['teks'] ?? '');
-        $urutan  = (int)($_POST['urutan'] ?? 0);
-        $jawaban = $_POST['jawaban'] ?? [];
+        if (isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+        } else {
+            $id = 0;
+        }
+
+        if (isset($_POST['teks'])) {
+            $teks = trim($_POST['teks']);
+        } else {
+            $teks = '';
+        }
+
+        if (isset($_POST['urutan'])) {
+            $urutan = (int)$_POST['urutan'];
+        } else {
+            $urutan = 0;
+        }
+
+        if (isset($_POST['jawaban']) && is_array($_POST['jawaban'])) {
+            $jawaban = $_POST['jawaban'];
+        } else {
+            $jawaban = [];
+        }
+
+        $jawaban_bersih = [];
+        foreach ($jawaban as $gaya_id => $teks_jawaban) {
+            $gId = (int)$gaya_id;
+            $tJ  = trim((string)$teks_jawaban);
+            if ($tJ !== '' && ($gId === 1 || $gId === 2 || $gId === 3)) {
+                $jawaban_bersih[$gId] = $tJ;
+            }
+        }
 
         if ($teks === '') {
             $galat = 'Teks pertanyaan tidak boleh kosong.';
+        } elseif (count($jawaban_bersih) < 3) {
+            $galat = 'Semua pilihan jawaban untuk Visual, Auditori, dan Kinestetik harus diisi.';
         } else {
             $db->begin_transaction();
             try {
@@ -33,18 +73,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $db->prepare('INSERT INTO pertanyaan (teks, urutan) VALUES (?, ?)');
                     $stmt->bind_param('si', $teks, $urutan);
                     $stmt->execute();
-                    $id = $db->insert_id;
+                    $id = (int)$db->insert_id;
                 }
 
                 $stmtJ = $db->prepare('INSERT INTO jawaban (pertanyaan_id, gaya_id, teks) VALUES (?, ?, ?)');
-                foreach ($jawaban as $gaya_id => $teks_jawaban) {
-                    $tJ  = trim($teks_jawaban);
-                    $gId = (int)$gaya_id;
-
-                    if ($tJ !== '' && ($gId === 1 || $gId === 2 || $gId === 3)) {
-                        $stmtJ->bind_param('iis', $id, $gId, $tJ);
-                        $stmtJ->execute();
-                    }
+                foreach ($jawaban_bersih as $gId => $tJ) {
+                    $stmtJ->bind_param('iis', $id, $gId, $tJ);
+                    $stmtJ->execute();
                 }
 
                 $db->commit();
@@ -55,7 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($aksi === 'hapus') {
-        $id = (int)($_POST['id'] ?? 0);
+        if (isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+        } else {
+            $id = 0;
+        }
+
         if ($id > 0) {
             $stmt = $db->prepare('DELETE FROM pertanyaan WHERE id = ?');
             $stmt->bind_param('i', $id);
@@ -68,10 +108,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $gayaList = [];
 $resGaya = $db->query('SELECT * FROM gaya_belajar ORDER BY id ASC');
 while ($row = $resGaya->fetch_assoc()) {
-    $gayaList[$row['id']] = $row;
+    $id_gaya = (int)$row['id'];
+    $gayaList[$id_gaya] = $row;
 }
 
-$editId = (int)($_GET['edit'] ?? 0);
+if (isset($_GET['edit'])) {
+    $editId = (int)$_GET['edit'];
+} else {
+    $editId = 0;
+}
+
 $editData = null;
 $editJawaban = [];
 
@@ -87,7 +133,8 @@ if ($editId > 0) {
         $resJ->execute();
         $resJData = $resJ->get_result();
         while ($j = $resJData->fetch_assoc()) {
-            $editJawaban[$j['gaya_id']] = $j['teks'];
+            $id_gaya_j = (int)$j['gaya_id'];
+            $editJawaban[$id_gaya_j] = $j['teks'];
         }
     }
 }
@@ -104,9 +151,22 @@ while ($row = $resP->fetch_assoc()) {
 
     $row['pilihan'] = [];
     while ($jSub = $resJSub->fetch_assoc()) {
-        $row['pilihan'][$jSub['gaya_id']] = $jSub;
+        $id_gaya_sub = (int)$jSub['gaya_id'];
+        $row['pilihan'][$id_gaya_sub] = $jSub;
     }
     $pertanyaanList[] = $row;
+}
+
+if ($editData) {
+    $judulForm = 'Ubah Pertanyaan #' . (int)$editData['id'];
+    $nilaiIdForm = (int)$editData['id'];
+    $nilaiTeksForm = $editData['teks'];
+    $nilaiUrutanForm = (int)$editData['urutan'];
+} else {
+    $judulForm = 'Tambah Pertanyaan Baru';
+    $nilaiIdForm = 0;
+    $nilaiTeksForm = '';
+    $nilaiUrutanForm = count($pertanyaanList) + 1;
 }
 
 $judul = 'Kelola Pertanyaan Kuis';
@@ -120,45 +180,52 @@ require __DIR__ . '/../includes/header.php';
 <h1>Kelola Pertanyaan Kuis</h1>
 <p class="sub">Tambah, ubah, atau hapus daftar pertanyaan serta pilihan jawaban kuis gaya belajar.</p>
 
-<?php if ($pesan): ?>
+<?php if ($pesan !== ''): ?>
   <div class="card" style="background: var(--surface); border-color: var(--ok); color: var(--ok); padding: 12px 18px; margin-bottom: 16px;">
     <strong><?= e($pesan) ?></strong>
   </div>
 <?php endif; ?>
 
-<?php if ($galat): ?>
+<?php if ($galat !== ''): ?>
   <div class="err" style="margin-bottom: 16px;"><?= e($galat) ?></div>
 <?php endif; ?>
 
 <div class="card" style="margin-bottom: 28px;">
-  <h2 style="margin-top: 0;"><?= $editData ? 'Ubah Pertanyaan #' . (int)$editData['id'] : 'Tambah Pertanyaan Baru' ?></h2>
+  <h2 style="margin-top: 0;"><?= e($judulForm) ?></h2>
 
   <form method="POST">
     <?= csrf_field() ?>
     <input type="hidden" name="aksi" value="simpan">
-    <input type="hidden" name="id" value="<?= $editData ? (int)$editData['id'] : 0 ?>">
+    <input type="hidden" name="id" value="<?= $nilaiIdForm ?>">
 
     <div style="margin-bottom: 14px;">
       <label class="l" for="teks">Teks Pertanyaan</label>
-      <textarea class="t" name="teks" id="teks" rows="2" required placeholder="Tuliskan pertanyaan kuis di sini..."><?= e($editData['teks'] ?? '') ?></textarea>
+      <textarea class="t" name="teks" id="teks" rows="2" required placeholder="Tuliskan pertanyaan kuis di sini..."><?= e($nilaiTeksForm) ?></textarea>
     </div>
 
     <div style="margin-bottom: 18px; max-width: 200px;">
       <label class="l" for="urutan">Nomor Urutan</label>
-      <input class="t" type="number" name="urutan" id="urutan" value="<?= e($editData['urutan'] ?? count($pertanyaanList) + 1) ?>" required>
+      <input class="t" type="number" name="urutan" id="urutan" value="<?= $nilaiUrutanForm ?>" required>
     </div>
 
     <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Pilihan Jawaban Berdasarkan Gaya Belajar</h3>
     <p class="hint" style="margin-bottom: 14px;">Isi opsi jawaban yang mencerminkan masing-masing kategori gaya belajar di bawah ini:</p>
 
     <?php foreach ($gayaList as $gId => $gInfo): ?>
+      <?php
+        if (isset($editJawaban[$gId])) {
+            $nilaiJawabanInput = $editJawaban[$gId];
+        } else {
+            $nilaiJawabanInput = '';
+        }
+      ?>
       <div style="margin-bottom: 12px;">
         <label class="l" style="display: flex; align-items: center; gap: 6px;">
           <span class="pill" style="background: var(--bg); font-size: 0.85rem;">
             <?= e($gInfo['nama']) ?> (<?= e($gInfo['kode']) ?>)
           </span>
         </label>
-        <input class="t" type="text" name="jawaban[<?= (int)$gId ?>]" value="<?= e($editJawaban[$gId] ?? '') ?>" placeholder="Tulis pilihan jawaban untuk gaya <?= e($gInfo['nama']) ?>..." required>
+        <input class="t" type="text" name="jawaban[<?= (int)$gId ?>]" value="<?= e($nilaiJawabanInput) ?>" placeholder="Tulis pilihan jawaban untuk gaya <?= e($gInfo['nama']) ?>..." required>
       </div>
     <?php endforeach; ?>
 
@@ -173,7 +240,7 @@ require __DIR__ . '/../includes/header.php';
 
 <h2>Daftar Pertanyaan (<?= count($pertanyaanList) ?>)</h2>
 
-<?php if (empty($pertanyaanList)): ?>
+<?php if (count($pertanyaanList) === 0): ?>
   <div class="empty">Belum ada pertanyaan yang ditambahkan.</div>
 <?php else: ?>
   <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">

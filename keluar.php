@@ -1,20 +1,31 @@
 <?php
-/* 
+/*
   File: keluar.php
-  Keterangan: Berfungsi untuk mengakhiri sesi login pengguna (logout).
-  File ini akan menghapus semua data sesi yang tersimpan, 
-  kemudian mengalihkan pengunjung kembali ke halaman utama.
+  Keterangan: Mengakhiri sesi login pengguna (logout) dengan menghapus
+  data sesi serta cookie sesi, lalu mengarahkan ke halaman masuk.
 */
 
-// Memuat file koneksi database dan fungsi bantuan (seperti fungsi url())
 require __DIR__ . '/config/koneksi.php';
 
-// 1. Mengosongkan seluruh data sesi (session) yang sedang aktif
+// Kosongkan seluruh data sesi yang sedang aktif
 $_SESSION = [];
 
-// 2. Menghancurkan sesi pengguna di server agar benar-benar keluar
+// Hapus cookie sesi di browser jika memang digunakan
+if (ini_get('session.use_cookies')) {
+    $params = session_get_cookie_params();
+    setcookie(
+        session_name(),
+        '',
+        time() - 42000,
+        $params['path'],
+        $params['domain'],
+        $params['secure'],
+        $params['httponly']
+    );
+}
+
+// Hancurkan sesi di server lalu arahkan ke halaman masuk
 session_destroy();
 
-// 3. Mengarahkan kembali pengguna ke halaman masuk (login)
 header('Location: ' . url('/masuk.php'));
 exit;

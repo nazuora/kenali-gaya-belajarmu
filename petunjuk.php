@@ -1,24 +1,19 @@
 <?php
-/* 
+/*
   File: petunjuk.php
-  Keterangan: Halaman petunjuk pengerjaan kuis yang memberikan panduan 
-  kepada pengguna sebelum mereka mulai menjawab pertanyaan gaya belajar.
+  Keterangan: Menampilkan panduan pengerjaan kuis gaya belajar serta
+  menandai bahwa pengguna sudah membaca petunjuk sebelum mulai kuis.
 */
 
-// Memulai sesi PHP untuk menyimpan status aktivitas pengguna
-session_start();
+require __DIR__ . '/config/koneksi.php';
 
-// Menandai di dalam sesi bahwa user sudah melewati halaman petunjuk
-$_SESSION['sudah_baca_petunjuk'] = true;
+// Tandai di sesi bahwa pengguna sudah membuka halaman petunjuk
+if (isset($_SESSION)) {
+    $_SESSION['sudah_baca_petunjuk'] = true;
+}
 
-// Memuat file koneksi database dan fungsi bantuan lainnya
-require_once __DIR__ . '/config/koneksi.php';
-
-// Menentukan judul halaman web
 $judul = 'Petunjuk Kuis';
-
-// Memuat bagian atas halaman (header dan menu navigasi)
-require_once __DIR__ . '/includes/header.php';
+require __DIR__ . '/includes/header.php';
 ?>
 
 <div class="narrow" style="max-width: 700px;">
@@ -58,18 +53,13 @@ require_once __DIR__ . '/includes/header.php';
 
     </ol>
 
+    <!-- Tombol untuk mulai masuk ke halaman soal kuis -->
     <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
         <a href="<?= e(url('/kuis.php')) ?>" class="btn">
-            Mulai Kuis 
+            Mulai Kuis
         </a>
     </div>
 
 </div>
 
-  <!-- Tombol untuk mulai masuk ke halaman soal kuis -->
-  
-
-<?php 
-// Memuat bagian bawah halaman (footer dan penutup HTML)
-require_once __DIR__ . '/includes/footer.php'; 
-?>
+<?php require __DIR__ . '/includes/footer.php'; ?>
