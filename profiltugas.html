@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Profil - Kenali Gaya Belajarmu</title>
+    <!-- Menghubungkan ke file CSS terpisah -->
+    <link
+      rel="stylesheet"
+      href="styleprofil.css"
+    />
+  </head>
+  <body>
+    <!-- Header & Navigasi -->
+    <header>
+      <div class="wrap">
+        <nav>
+          <a
+            href="index.html"
+            class="logo"
+          >
+            <span
+              class="dots"
+              aria-hidden="true"
+            >
+              <i style="background: var(--blue)"></i>
+              <i style="background: var(--yellow)"></i>
+              <i style="background: var(--green)"></i>
+            </span>
+            Kenali Gaya Belajarmu
+          </a>
+          <div class="links">
+            <a href="index.html">Home</a>
+            <a href="jenis.html">Jenis</a>
+            <a href="kuis.html">Kuis</a>
+            <a href="riwayat.html">Riwayat</a>
+            <a
+              href="profil.html"
+              class="active"
+              id="navUser"
+              >Akun Baru</a
+            >
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Konten Utama Profil -->
+    <main class="wrap">
+      <section class="view">
+        <div
+          class="narrow"
+          style="max-width: 520px"
+        >
+          <h1 class="s">Profilmu</h1>
+
+          <!-- Card Informasi Profil -->
+          <div class="card">
+            <div
+              class="who"
+              style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px"
+            >
+              <div
+                class="ava"
+                id="avaInisial"
+                style="width: 84px; height: 84px; border-radius: 50%; background: var(--blue-soft); border: 4px solid var(--blue); display: grid; place-items: center; font-size: 2rem; font-weight: 900; color: var(--text)"
+              >
+                ?
+              </div>
+              <div>
+                <strong
+                  id="pshow"
+                  style="font-size: 1.1rem"
+                  >Belum ada nama</strong
+                ><br />
+                <label
+                  class="file"
+                  style="font-weight: 900; color: var(--blue); cursor: pointer; display: inline-block; margin-top: 4px"
+                  >Ganti foto<input
+                    type="file"
+                    accept="image/*"
+                    style="display: none"
+                /></label>
+              </div>
+            </div>
+
+            <label
+              class="l"
+              for="pname"
+              >Nama Lengkap</label
+            >
+            <input
+              type="text"
+              class="t"
+              id="pname"
+              placeholder="Masukkan nama lengkap kamu"
+              value=""
+            />
+
+            <label
+              class="l"
+              for="pemail"
+              style="margin-top: 12px"
+              >Email</label
+            >
+            <input
+              type="email"
+              class="t"
+              id="pemail"
+              placeholder="nama@email.com"
+              value=""
+            />
+            <div
+              class="hint"
+              style="color: var(--muted); font-size: 0.92rem; margin-top: 4px; margin-bottom: 16px"
+            >
+              Format foto yang didukung: JPG, PNG, atau WebP, dengan ukuran maksimal 2 MB.
+            </div>
+
+            <!-- Tombol Simpan & Keluar -->
+            <div
+              class="actions"
+              style="display: flex; gap: 12px; align-items: center"
+            >
+              <button
+                type="button"
+                class="btn"
+                id="psave"
+                onclick="simpanProfil()"
+              >
+                Simpan Perubahan
+              </button>
+              <button
+                type="button"
+                class="btn ghost"
+                id="logout"
+                onclick="konfirmasiKeluar()"
+              >
+                Keluar
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Zona Bahaya: Hapus Akun -->
+          <div
+            class="card danger"
+            style="border-color: var(--err); margin-top: 16px"
+          >
+            <h2 style="color: var(--err); margin-top: 0; margin-bottom: 6px">Hapus Akun</h2>
+            <p style="color: var(--muted); margin-bottom: 12px">Semua data akun dan seluruh riwayat kuis kamu akan dihapus secara permanen.</p>
+
+            <label
+              class="l"
+              for="passKonfirmasi"
+              >Masukkan kata sandi untuk konfirmasi</label
+            >
+            <input
+              type="password"
+              class="t"
+              id="passKonfirmasi"
+              style="margin-bottom: 12px"
+            />
+
+            <div class="actions">
+              <button
+                type="button"
+                class="btn red"
+                id="del"
+                onclick="konfirmasiHapusAkun()"
+              >
+                Hapus Akun Saya
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="wrap">Demo konsep desain Tugas Besar Pemrograman Web, Kelompok 5.</div>
+    </footer>
+
+    <!-- JavaScript Sederhana -->
+    <script>
+      // Fungsi Tombol Keluar dengan Konfirmasi Alert
+      function konfirmasiKeluar() {
+        let yakin = confirm('Apakah Anda yakin ingin keluar dari akun ini?');
+        if (yakin) {
+          alert('Berhasil keluar dari akun.');
+          window.location.href = 'masuk.html';
+        }
+      }
+
+      // Fungsi Simpan Perubahan / Masukkan Nama Baru
+      function simpanProfil() {
+        let namaBaru = document.getElementById('pname').value.trim();
+        if (namaBaru === '') {
+          alert('Nama lengkap tidak boleh kosong!');
+          return;
+        }
+
+        // Perbarui tampilan nama di kartu profil dan navigasi atas
+        document.getElementById('pshow').innerText = namaBaru;
+        document.getElementById('navUser').innerText = namaBaru.split(' ')[0];
+
+        // Ubah inisial huruf di dalam lingkaran avatar sesuai huruf pertama nama
+        document.getElementById('avaInisial').innerText = namaBaru.charAt(0).toUpperCase();
+
+        alert('Perubahan profil berhasil disimpan!');
+      }
+
+      // Fungsi Konfirmasi Hapus Akun dengan Validasi Password
+      function konfirmasiHapusAkun() {
+        let passwordInput = document.getElementById('passKonfirmasi').value;
+
+        if (passwordInput.trim() === '') {
+          alert('Silakan masukkan kata sandi terlebih dahulu untuk konfirmasi penghapusan akun!');
+          return;
+        }
+
+        let yakinHapus = confirm('PERINGATAN: Tindakan ini tidak dapat dibatalkan. Yakin ingin menghapus akun secara permanen?');
+        if (yakinHapus) {
+          alert('Akun Anda telah berhasil dihapus.');
+          window.location.href = 'masuk.html';
+        }
+      }
+    </script>
+  </body>
+</html>
