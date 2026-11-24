@@ -18,7 +18,10 @@ if (!$db) {
 mysqli_set_charset($db, 'utf8mb4');
 
 // Base URL dan helper pembuat tautan halaman
-define('BASE_URL', 'http://localhost/kenali-gaya-belajarmu');
+$akarProyek = str_replace('\\', '/', (string)realpath(__DIR__ . '/..'));
+$dr = $_SERVER['DOCUMENT_ROOT'] ?? '';
+$akarServer = $dr !== '' ? str_replace('\\', '/', rtrim((string)realpath($dr), '/\\')) : '';
+define('BASE_URL', ($akarServer !== '' && stripos($akarProyek, $akarServer) === 0) ? (string)substr($akarProyek, strlen($akarServer)) : '');;
 
 function url($jalur) {
     return BASE_URL . $jalur;

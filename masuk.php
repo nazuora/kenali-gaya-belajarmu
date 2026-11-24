@@ -68,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $hasil->fetch_assoc();
 
             if ($user && password_verify($sandi, $user['password_hash'])) {
+                session_regenerate_id(true);
                 $_SESSION['user'] = [
                     'id'    => (int)$user['id'],
                     'nama'  => $user['nama'],
@@ -128,9 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare("INSERT INTO users (nama, email, password_hash, role) VALUES (?, ?, ?, 'user')");
             $stmt->bind_param('sss', $nilai['nama'], $nilai['email'], $hash);
 
-            if ($stmt->execute()) {
+            try {
+                $stmt->execute();
                 $idBaru = (int)$db->insert_id;
 
+                session_regenerate_id(true);
                 $_SESSION['user'] = [
                     'id'    => $idBaru,
                     'nama'  => $nilai['nama'],
@@ -144,11 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $tujuan = '/kuis.php';
                 }
-
                 header('Location: ' . url($tujuan));
                 exit;
-            } else {
-                if ($db->errno === 1062) {
+            } catch (mysqli_sql_exception $ex) {
+                if ($ex->getCode() === 1062) {
                     $err['email'] = 'Email ini sudah terdaftar. Silakan masuk.';
                 } else {
                     $err['email'] = 'Gagal mendaftarkan akun. Silakan coba lagi.';
