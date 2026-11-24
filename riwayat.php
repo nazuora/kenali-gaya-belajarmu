@@ -199,7 +199,7 @@ require __DIR__ . '/includes/header.php';
           <!-- Tombol aksi -->
           <div class="actions" style="justify-content:flex-start;align-items:center">
 
-            <a class="btn ghost" style="padding:8px 18px" href="<?= e(url('/hasil.php?id=' . (int)$r['id'])) ?>">
+            <a class="btn ghost" style="padding:8px 18px" href="<?= e(url('/new/hasil1.php?id=' . (int)$r['id'])) ?>">
               Lihat detail
             </a>
 
