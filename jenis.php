@@ -72,8 +72,8 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Bagian Judul Halaman -->
-<h1 class="s">Jenis gaya belajar</h1>
-<p class="sub">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
+<h1 class="s" style="text-align:center">Jenis gaya belajar</h1>
+<p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
 
 <!-- Bagian Tombol Tab Pilihan Gaya Belajar -->
 <div class="tabs" role="tablist">

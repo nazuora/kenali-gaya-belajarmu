@@ -353,6 +353,19 @@ textarea.t:focus {
   gap: 36px;
 }
 
+/* Gambar di sisi kanan beranda */
+.hero-gambar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-gambar img {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: block;
+}
+
 /* Tombol pilihan jawaban */
 .opt {
   display: block;
