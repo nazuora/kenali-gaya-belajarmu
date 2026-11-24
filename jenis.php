@@ -1,15 +1,14 @@
 <?php
-/* 
+/*
   File: jenis.php
-  Keterangan: Halaman untuk menampilkan informasi jenis gaya belajar 
-  (Visual, Auditori, Kinestetik) beserta ciri-ciri dan tips belajarnya 
-  dalam bentuk tab interaktif yang ramah pengguna.
+  Keterangan: Halaman untuk menampilkan informasi jenis gaya belajar
+  (Visual, Auditori, Kinestetik) beserta ciri-ciri dan tips belajarnya
+  dalam bentuk tab interaktif.
 */
 
-// Memanggil file koneksi database (jika diperlukan) dan fungsi ikon
 require __DIR__ . '/config/koneksi.php';
 
-// Data konten halaman Jenis Gaya Belajar dibuat manual di dalam array agar mudah dibaca
+// Data konten jenis gaya belajar (Visual, Auditori, Kinestetik)
 $daftar_gaya = [
     [
         'kode' => 'V',
@@ -71,74 +70,72 @@ $judul = 'Jenis Gaya Belajar';
 require __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Bagian Judul Halaman -->
 <h1 class="s" style="text-align:center">Jenis gaya belajar</h1>
 <p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Gaya belajar adalah cara yang paling nyaman bagi seseorang untuk menerima dan mengingat informasi. Pilih salah satu untuk mengenalnya.</p>
 
-<!-- Bagian Tombol Tab Pilihan Gaya Belajar -->
 <div class="tabs" role="tablist">
-  <?php foreach ($daftar_gaya as $i => $g): ?>
-    <?php 
-        $kodeKecil = strtolower($g['kode']);
-        // Menentukan apakah tab ini aktif di awal (untuk tab pertama)
-        $statusAktif = ($i === 0) ? 'true' : 'false';
+  <?php foreach ($daftar_gaya as $i => $g) { ?>
+    <?php
+      $kodeKecil = strtolower($g['kode']);
+      if ($i === 0) {
+          $statusAktif = 'true';
+      } else {
+          $statusAktif = 'false';
+      }
     ?>
-    <button type="button" role="tab" class="<?= $kodeKecil ?>" data-kode="<?= $g['kode'] ?>" data-k="<?= $kodeKecil ?>" aria-selected="<?= $statusAktif ?>">
-      <?= htmlspecialchars($g['nama']) ?>
+    <button type="button" role="tab" class="<?= e($kodeKecil) ?>" data-kode="<?= e($g['kode']) ?>" data-k="<?= e($kodeKecil) ?>" aria-selected="<?= e($statusAktif) ?>">
+      <?= e($g['nama']) ?>
     </button>
-  <?php endforeach; ?>
+  <?php } ?>
 </div>
 
-<!-- Bagian Panel Konten untuk Setiap Jenis Gaya Belajar -->
-<?php foreach ($daftar_gaya as $i => $g): ?>
-  <?php 
-      $kodeKecil = strtolower($g['kode']);
-      // Menyembunyikan panel selain panel pertama secara default
-      $atributHidden = ($i === 0) ? '' : 'hidden';
+<?php foreach ($daftar_gaya as $i => $g) { ?>
+  <?php
+    $kodeKecil = strtolower($g['kode']);
+    if ($i === 0) {
+        $atributHidden = '';
+    } else {
+        $atributHidden = ' hidden';
+    }
   ?>
-  <article class="panel <?= $kodeKecil ?>" id="p-<?= $g['kode'] ?>" role="tabpanel" <?= $atributHidden ?>>
-    
+  <article class="panel <?= e($kodeKecil) ?>" id="p-<?= e($g['kode']) ?>" role="tabpanel"<?= $atributHidden ?>>
+
     <div class="bubble">
-      <h2><?= htmlspecialchars($g['nama']) ?></h2>
-      <p><?= htmlspecialchars($g['pengertian']) ?></p>
+      <h2><?= e($g['nama']) ?></h2>
+      <p><?= e($g['pengertian']) ?></p>
     </div>
 
-       <h3 class="sec">Ciri-ciri dan cara belajar</h3>
+    <h3 class="sec">Ciri-ciri dan cara belajar</h3>
 
     <ul class="tips">
-      <?php foreach ($g['ciri'] as $ciri_item): ?>
-        <li><?= htmlspecialchars($ciri_item) ?></li>
-      <?php endforeach; ?>
+      <?php foreach ($g['ciri'] as $ciri_item) { ?>
+        <li><?= e($ciri_item) ?></li>
+      <?php } ?>
 
-      <?php foreach ($g['tips'] as $tips_item): ?>
-        <li><?= htmlspecialchars($tips_item) ?></li>
-      <?php endforeach; ?>
+      <?php foreach ($g['tips'] as $tips_item) { ?>
+        <li><?= e($tips_item) ?></li>
+      <?php } ?>
     </ul>
 
   </article>
-<?php endforeach; ?>
+<?php } ?>
 
-<!-- Tombol Navigasi ke Halaman Kuis -->
 <p style="margin-top:18px">
-    <a class="btn" href="<?= url('/petunjuk.php') ?>">Cari tahu gaya belajarmu</a>
+  <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">Cari tahu gaya belajarmu</a>
 </p>
 
-<!-- Skrip JavaScript Sederhana untuk Mengatur Perpindahan Tab -->
 <script>
-  // Mengambil semua tombol tab yang ada
+  // Mengatur perpindahan tab antara Visual, Auditori, dan Kinestetik
   const semuaTombolTab = document.querySelectorAll('.tabs button');
   const semuaPanelKonten = document.querySelectorAll('.panel');
 
   semuaTombolTab.forEach(function(tombol) {
     tombol.onclick = function() {
-      
-      // 1. Ubah status aria-selected pada semua tombol menjadi false, lalu jadikan true pada yang diklik
       semuaTombolTab.forEach(function(t) {
         t.setAttribute('aria-selected', 'false');
       });
       tombol.setAttribute('aria-selected', 'true');
 
-      // 2. Sembunyikan semua panel, lalu tampilkan panel yang kodenya cocok dengan tombol
       const kodePilihan = tombol.getAttribute('data-kode');
       semuaPanelKonten.forEach(function(panel) {
         if (panel.id === 'p-' + kodePilihan) {
@@ -147,7 +144,6 @@ require __DIR__ . '/includes/header.php';
           panel.setAttribute('hidden', 'true');
         }
       });
-
     };
   });
 </script>
