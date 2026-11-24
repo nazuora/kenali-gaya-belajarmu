@@ -34,10 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
 
     if (isset($_POST['jawaban'])) {
-        $jawabanUser = $_POST['jawaban'];
-    } else {
-        $jawabanUser = [];
-    }
+    $jawabanUser = $_POST['jawaban'];
+} else {
+    $jawabanUser = [];
+}
 
     if (!is_array($jawabanUser) || count($jawabanUser) === 0) {
         $galat = 'Kamu harus menjawab pertanyaan kuis terlebih dahulu.';
