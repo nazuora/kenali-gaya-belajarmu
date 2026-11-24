@@ -1,11 +1,11 @@
 <?php
 /*
-  File: jenis1.php
-  Keterangan: Halaman informasi jenis gaya belajar
-  Visual, Auditori, dan Kinestetik.
+  File: jenis.php
+  Keterangan: Halaman informasi jenis gaya belajar (Visual, Auditori,
+  dan Kinestetik) beserta ciri-ciri, tips belajar, dan bidang pekerjaan.
 */
 
-require __DIR__ . '/../config/koneksi.php';
+require __DIR__ . '/config/koneksi.php';
 
 $daftar_gaya = [
     [
@@ -115,10 +115,9 @@ $daftar_gaya = [
 ];
 
 $judul = 'Jenis Gaya Belajar';
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Pengaturan lebar teks pengantar -->
 <style>
     p.sub {
         display: block !important;
@@ -127,7 +126,6 @@ require __DIR__ . '/../includes/header.php';
     }
 </style>
 
-<!-- Judul Halaman -->
 <h1 class="s">Jenis gaya belajar</h1>
 
 <p class="sub">
@@ -135,107 +133,81 @@ require __DIR__ . '/../includes/header.php';
     Kenali tiga jenis gaya belajar berikut untuk mengetahui cara belajar yang dapat membantumu memahami materi dengan baik.
 </p>
 
-<!-- Tombol Tab -->
 <div class="tabs" role="tablist">
-
-    <?php foreach ($daftar_gaya as $i => $g): ?>
-
+    <?php foreach ($daftar_gaya as $i => $g) { ?>
         <?php
             $kodeKecil = strtolower($g['kode']);
-            $statusAktif = ($i === 0) ? 'true' : 'false';
+            if ($i === 0) {
+                $statusAktif = 'true';
+            } else {
+                $statusAktif = 'false';
+            }
         ?>
-
         <button
             type="button"
             role="tab"
-            class="<?= $kodeKecil ?>"
-            data-kode="<?= $g['kode'] ?>"
-            data-k="<?= $kodeKecil ?>"
-            aria-selected="<?= $statusAktif ?>"
+            class="<?= e($kodeKecil) ?>"
+            data-kode="<?= e($g['kode']) ?>"
+            data-k="<?= e($kodeKecil) ?>"
+            aria-selected="<?= e($statusAktif) ?>"
         >
-            <?= htmlspecialchars($g['nama']) ?>
+            <?= e($g['nama']) ?>
         </button>
-
-    <?php endforeach; ?>
-
+    <?php } ?>
 </div>
 
-<!-- Panel Konten -->
-<?php foreach ($daftar_gaya as $i => $g): ?>
-
+<?php foreach ($daftar_gaya as $i => $g) { ?>
     <?php
         $kodeKecil = strtolower($g['kode']);
-        $atributHidden = ($i === 0) ? '' : 'hidden';
+        if ($i === 0) {
+            $atributHidden = '';
+        } else {
+            $atributHidden = ' hidden';
+        }
     ?>
-
     <article
-        class="panel <?= $kodeKecil ?>"
-        id="p-<?= $g['kode'] ?>"
-        role="tabpanel"
-        <?= $atributHidden ?>
+        class="panel <?= e($kodeKecil) ?>"
+        id="p-<?= e($g['kode']) ?>"
+        role="tabpanel"<?= $atributHidden ?>
     >
-
-        <!-- Pengertian -->
         <div class="bubble">
-
-            <h2>Gaya Belajar <?= htmlspecialchars($g['nama']) ?></h2>
-
+            <h2>Gaya Belajar <?= e($g['nama']) ?></h2>
             <p>
-                <?= htmlspecialchars($g['awal']) ?>
-                <strong><?= htmlspecialchars($g['inti']) ?></strong>
-                <?= htmlspecialchars($g['akhir']) ?>
+                <?= e($g['awal']) ?>
+                <strong><?= e($g['inti']) ?></strong>
+                <?= e($g['akhir']) ?>
             </p>
-
         </div>
 
-        <!-- Ciri-Ciri -->
         <h3 class="sec">
-            Ciri-Ciri Gaya Belajar <?= htmlspecialchars($g['nama']) ?>
+            Ciri-Ciri Gaya Belajar <?= e($g['nama']) ?>
         </h3>
 
         <ul class="tips">
-
-            <?php foreach ($g['ciri'] as $ciri_item): ?>
-
-                <li><?= htmlspecialchars($ciri_item) ?></li>
-
-            <?php endforeach; ?>
-
+            <?php foreach ($g['ciri'] as $ciri_item) { ?>
+                <li><?= e($ciri_item) ?></li>
+            <?php } ?>
         </ul>
 
-        <!-- Tips Belajar -->
         <h3 class="sec">Tips Belajar yang Dapat Dilakukan</h3>
 
         <ul class="tips">
-
-            <?php foreach ($g['tips'] as $tips_item): ?>
-
-                <li><?= htmlspecialchars($tips_item) ?></li>
-
-            <?php endforeach; ?>
-
+            <?php foreach ($g['tips'] as $tips_item) { ?>
+                <li><?= e($tips_item) ?></li>
+            <?php } ?>
         </ul>
 
-        <!-- Contoh Bidang Pekerjaan -->
         <h3 class="sec">Contoh Bidang Pekerjaan yang Sesuai</h3>
 
         <ul class="tips">
-
-            <?php foreach ($g['pekerjaan'] as $pekerjaan_item): ?>
-
-                <li><?= htmlspecialchars($pekerjaan_item) ?></li>
-
-            <?php endforeach; ?>
-
+            <?php foreach ($g['pekerjaan'] as $pekerjaan_item) { ?>
+                <li><?= e($pekerjaan_item) ?></li>
+            <?php } ?>
         </ul>
-
     </article>
+<?php } ?>
 
-<?php endforeach; ?>
-
-<!-- Catatan dengan jarak satu baris -->
 <div class="bubble" style="margin-top: 1em;">
-
     <p>
         <strong>Catatan:</strong>
         Gaya belajar bukan kategori yang mutlak.
@@ -243,25 +215,21 @@ require __DIR__ . '/../includes/header.php';
         gaya belajar. Oleh karena itu, gunakan berbagai metode
         belajar sesuai kebutuhan dan jenis materi yang sedang dipelajari.
     </p>
-
 </div>
 
-<!-- Tombol Menuju Kuis -->
 <p style="margin-top:18px">
-    <a class="btn" href="<?= url('/petunjuk.php') ?>">
+    <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">
         Cari tahu gaya belajarmu
     </a>
 </p>
 
-<!-- JavaScript Tab -->
 <script>
+    // Mengatur perpindahan tab antara Visual, Auditori, dan Kinestetik
     const semuaTombolTab = document.querySelectorAll('.tabs button');
     const semuaPanelKonten = document.querySelectorAll('.panel');
 
     semuaTombolTab.forEach(function(tombol) {
-
         tombol.onclick = function() {
-
             semuaTombolTab.forEach(function(t) {
                 t.setAttribute('aria-selected', 'false');
             });
@@ -271,18 +239,14 @@ require __DIR__ . '/../includes/header.php';
             const kodePilihan = tombol.getAttribute('data-kode');
 
             semuaPanelKonten.forEach(function(panel) {
-
                 if (panel.id === 'p-' + kodePilihan) {
                     panel.removeAttribute('hidden');
                 } else {
                     panel.setAttribute('hidden', 'true');
                 }
-
             });
-
         };
-
     });
 </script>
 
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; ?>
