@@ -76,14 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'role'  => $user['role'],
                 ];
 
-                $hasilId = simpan_hasil_tertunda($db, (int)$user['id']);
-                if ($hasilId) {
-                    $tujuan = '/hasil.php?id=' . $hasilId;
-                } else {
-                    $tujuan = '/kuis.php';
-                }
-
-                header('Location: ' . url($tujuan));
+                header('Location: ' . url('/kuis.php'));
                 exit;
             }
 
@@ -107,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ulang = '';
         }
 
-        if (mb_strlen($nilai['nama']) < 2) {
-            $err['nama'] = 'Isi nama minimal 2 huruf.';
+        if (mb_strlen($nilai['nama']) < 4) {
+            $err['nama'] = 'Isi nama minimal 4 huruf.';
         }
 
         if (!filter_var($nilai['email'], FILTER_VALIDATE_EMAIL)) {
@@ -130,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sss', $nilai['nama'], $nilai['email'], $hash);
 
             try {
+                // Untuk PHP di bawah 8.1, gagal simpan tidak melempar error, jadi dilempar manual
                 $stmt->execute();
                 $idBaru = (int)$db->insert_id;
 
@@ -141,13 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'role'  => 'user',
                 ];
 
-                $hasilId = simpan_hasil_tertunda($db, $idBaru);
-                if ($hasilId) {
-                    $tujuan = '/hasil.php?id=' . $hasilId;
-                } else {
-                    $tujuan = '/kuis.php';
-                }
-                header('Location: ' . url($tujuan));
+                header('Location: ' . url('/kuis.php'));
                 exit;
             } catch (mysqli_sql_exception $ex) {
                 if ($ex->getCode() === 1062) {

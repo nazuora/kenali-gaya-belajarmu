@@ -7,90 +7,31 @@
 
 require __DIR__ . '/config/koneksi.php';
 
-$login = false;
-if (isset($_SESSION['user']) && isset($_SESSION['user']['id'])) {
-    $login = true;
+wajib_login();   // hanya yang sudah masuk yang boleh melihat hasil
+
+$uid = (int)$_SESSION['user']['id'];
+$id  = (int)($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    header('Location: ' . url('/riwayat.php'));
+    exit;
 }
 
-if ($login) {
-    $uid = (int)$_SESSION['user']['id'];
-} else {
-    $uid = 0;
+$stmt = $db->prepare('SELECT h.persen_visual, h.persen_auditori, h.persen_kinestetik,
+                             g.id AS gaya_id, g.kode, g.nama, g.julukan, g.kalimat_hasil, g.tips
+                      FROM hasil_kuis h
+                      JOIN gaya_belajar g ON g.id = h.gaya_utama_id
+                      WHERE h.id = ? AND h.user_id = ?');
+$stmt->bind_param('ii', $id, $uid);
+$stmt->execute();
+$h = $stmt->get_result()->fetch_assoc();
+
+if (!$h) {
+    http_response_code(404);
+    exit('Hasil tidak ditemukan.');
 }
 
-$h = null;
-$utama = 0;
-
-// Ambil data hasil milik user yang login atau hasil sementara di session
-if ($login) {
-    if (isset($_GET['id'])) {
-        $id = (int)$_GET['id'];
-    } else {
-        $id = 0;
-    }
-
-    if ($id <= 0) {
-        header('Location: ' . url('/riwayat.php'));
-        exit;
-    }
-
-    $stmt = $db->prepare('SELECT h.persen_visual, h.persen_auditori, h.persen_kinestetik,
-                                 g.id AS gaya_id, g.kode, g.nama, g.julukan, g.kalimat_hasil, g.tips
-                          FROM hasil_kuis h
-                          JOIN gaya_belajar g ON g.id = h.gaya_utama_id
-                          WHERE h.id = ? AND h.user_id = ?');
-    $stmt->bind_param('ii', $id, $uid);
-    $stmt->execute();
-    $h = $stmt->get_result()->fetch_assoc();
-
-    if (!$h) {
-        http_response_code(404);
-        exit('Hasil tidak ditemukan.');
-    }
-
-    $utama = (int)$h['gaya_id'];
-} else {
-    if (isset($_SESSION['hasil_tertunda']) && is_array($_SESSION['hasil_tertunda'])) {
-        $tertunda = $_SESSION['hasil_tertunda'];
-    } else {
-        header('Location: ' . url('/masuk.php'));
-        exit;
-    }
-
-    if (isset($tertunda['g'])) {
-        $utama = (int)$tertunda['g'];
-    } else {
-        $utama = 1;
-    }
-
-    $stmt = $db->prepare('SELECT id AS gaya_id, kode, nama, julukan, kalimat_hasil, tips FROM gaya_belajar WHERE id = ?');
-    $stmt->bind_param('i', $utama);
-    $stmt->execute();
-    $h = $stmt->get_result()->fetch_assoc();
-
-    if (!$h) {
-        http_response_code(500);
-        exit('Data gaya belajar belum ada.');
-    }
-
-    if (isset($tertunda['v'])) {
-        $h['persen_visual'] = (int)$tertunda['v'];
-    } else {
-        $h['persen_visual'] = 0;
-    }
-
-    if (isset($tertunda['a'])) {
-        $h['persen_auditori'] = (int)$tertunda['a'];
-    } else {
-        $h['persen_auditori'] = 0;
-    }
-
-    if (isset($tertunda['k'])) {
-        $h['persen_kinestetik'] = (int)$tertunda['k'];
-    } else {
-        $h['persen_kinestetik'] = 0;
-    }
-}
+$utama = (int)$h['gaya_id'];
 
 // Daftar teks dan tips per gaya belajar (1 = Visual, 2 = Auditori, 3 = Kinestetik)
 $daftar_hasil_gaya = [
@@ -198,16 +139,7 @@ require __DIR__ . '/includes/header.php';
       <?php endforeach; ?>
     </ul>
 
-    <?php if ($login): ?>
-      <div class="msg">Hasil tersimpan di Riwayat.</div>
-    <?php else: ?>
-      <div class="msg">
-        <span style="color: var(--muted);">
-          Masuk agar hasil tersimpan di Riwayat.
-          <a href="<?= e(url('/masuk.php')) ?>" style="color: var(--text); font-weight: 900;">Masuk sekarang</a>
-        </span>
-      </div>
-    <?php endif; ?>
+    <div class="msg">Hasil tersimpan di Riwayat.</div>
 
     <div class="actions">
       <a class="btn ghost" href="<?= e(url('/petunjuk.php')) ?>">Ulangi kuis</a>

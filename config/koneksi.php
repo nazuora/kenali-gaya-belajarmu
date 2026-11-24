@@ -108,9 +108,3 @@ function tanggal_id($waktu) {
 
     return $hari . ' ' . $bulan . ' ' . $tahun;
 }
-
-if (!function_exists('simpan_hasil_tertunda')) {
-    function simpan_hasil_tertunda($db, $userId) {
-        return null;
-    }
-}
