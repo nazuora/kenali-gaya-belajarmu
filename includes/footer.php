@@ -1,4 +1,9 @@
 <?php
+/*
+  File: includes/footer.php
+  Keterangan: Bagian penutup konten utama, kaki halaman (footer),
+  serta skrip jam berjalan yang diperbarui setiap detik.
+*/
 ?>
 
     <!-- Penutup Konten Utama Halaman -->
@@ -11,12 +16,13 @@
       </div>
     </footer>
 
- <script>
+<script>
+// Menampilkan dan memperbarui jam berjalan pada elemen #jam
 function tampilJam() {
-    const e = document.getElementById('jam');
+    const elemenJam = document.getElementById('jam');
 
-    if (e) {
-        e.textContent = new Date()
+    if (elemenJam) {
+        elemenJam.textContent = new Date()
             .toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',
