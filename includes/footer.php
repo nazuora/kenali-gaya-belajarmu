@@ -34,6 +34,20 @@ function tampilJam() {
 
 tampilJam();
 setInterval(tampilJam, 1000);
+
+// Tombol berbentuk tautan menjadi abu-abu sebentar sebelum pindah halaman
+document.querySelectorAll('a.btn').forEach(function(tombol) {
+    tombol.addEventListener('click', function(e) {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
+            return;
+        }
+        e.preventDefault();
+        tombol.classList.add('ditekan');
+        setTimeout(function() {
+            window.location.href = tombol.href;
+        }, 250);
+    });
+});
 </script>
 
 </body>

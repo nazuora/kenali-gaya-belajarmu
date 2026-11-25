@@ -279,9 +279,9 @@ h2 {
   filter: brightness(1.06);
 }
 
-/* Tombol utama menjadi abu-abu saat ditekan dan selama halaman berpindah */
+/* Tombol utama menjadi abu-abu saat diklik (kelas ditekan dipasang oleh skrip di footer) */
 .btn:not(.ghost):not(.red):active,
-.btn:not(.ghost):not(.red):focus {
+.btn.ditekan:not(.ghost):not(.red) {
   background: #808080;
   color: #fff;
 }
