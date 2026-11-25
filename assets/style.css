@@ -135,13 +135,13 @@ nav {
   flex-wrap: wrap;
 }
 
-.links a {
+.links a:not(.btn) {
   padding: 6px 14px;
   border-radius: 999px;
   font-weight: 700;
 }
 
-.links a:hover {
+.links a:not(.btn):hover {
   background: transparent;
 }
 
@@ -277,6 +277,12 @@ h2 {
 
 .btn:hover:not(:disabled) {
   filter: brightness(1.06);
+}
+
+/* Saat ditekan, tombol utama menjadi abu-abu */
+.btn:not(.ghost):not(.red):active {
+  background: #808080;
+  color: #fff;
 }
 
 
