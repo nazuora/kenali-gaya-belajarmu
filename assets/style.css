@@ -275,6 +275,11 @@ h2 {
   cursor: not-allowed;
 }
 
+.btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* Saat ditekan, tombol utama menjadi abu-abu */
 .btn:not(.ghost):not(.red):active {
   background: #808080;
   color: #fff;

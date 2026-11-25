@@ -15,7 +15,7 @@ require __DIR__ . '/includes/header.php';
   <div>
     <h1>Temukan cara belajar yang paling pas untukmu.</h1>
     <p class="lead">Jawab pertanyaan seputar situasi sehari-hari. Kamu akan dapat profil gaya belajar dan tips yang bisa langsung dipraktikkan.</p>
-    <div class="links" style="gap:12px">
+    <div style="display:flex; gap:12px">
       <a href="<?= e(url('/petunjuk.php')) ?>" class="btn">Mulai Kuis Sekarang</a>
     </div>
   </div>
