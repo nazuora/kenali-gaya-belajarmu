@@ -21,6 +21,36 @@ if (isset($judul) && $judul !== '') {
 } else {
     $judul_halaman = 'Kenali Gaya Belajarmu';
 }
+
+$aktif_home = '';
+if ($halaman_aktif === 'index.php') {
+    $aktif_home = ' aria-current="page"';
+}
+
+$aktif_jenis = '';
+if ($halaman_aktif === 'jenis.php') {
+    $aktif_jenis = ' aria-current="page"';
+}
+
+$aktif_kuis = '';
+if ($halaman_aktif === 'petunjuk.php' || $halaman_aktif === 'kuis.php' || $halaman_aktif === 'hasil.php') {
+    $aktif_kuis = ' aria-current="page"';
+}
+
+$aktif_riwayat = '';
+if ($halaman_aktif === 'riwayat.php') {
+    $aktif_riwayat = ' aria-current="page"';
+}
+
+$aktif_admin = '';
+if ($halaman_aktif === 'pertanyaan.php' || $halaman_aktif === 'gaya.php') {
+    $aktif_admin = ' aria-current="page"';
+}
+
+$aktif_akun = '';
+if ($halaman_aktif === 'profil.php' || $halaman_aktif === 'masuk.php' || $halaman_aktif === 'daftar.php') {
+    $aktif_akun = ' aria-current="page"';
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -45,23 +75,23 @@ if (isset($judul) && $judul !== '') {
 
       <div class="links">
 
-        <a href="<?= e(url('/')) ?>" <?php if ($halaman_aktif === 'index.php') { echo 'aria-current="page"'; } ?>>
+        <a href="<?= e(url('/')) ?>"<?= $aktif_home ?>>
           Home
         </a>
 
-        <a href="<?= e(url('/jenis.php')) ?>" <?php if ($halaman_aktif === 'jenis.php') { echo 'aria-current="page"'; } ?>>
+        <a href="<?= e(url('/jenis.php')) ?>"<?= $aktif_jenis ?>>
           Jenis
         </a>
 
-        <a href="<?= e(url('/petunjuk.php')) ?>" <?php if ($halaman_aktif === 'petunjuk.php' || $halaman_aktif === 'kuis.php' || $halaman_aktif === 'hasil.php') { echo 'aria-current="page"'; } ?>>
+        <a href="<?= e(url('/petunjuk.php')) ?>"<?= $aktif_kuis ?>>
           Kuis
         </a>
 
-        <a href="<?= e(url('/riwayat.php')) ?>" <?php if ($halaman_aktif === 'riwayat.php') { echo 'aria-current="page"'; } ?>>
+        <a href="<?= e(url('/riwayat.php')) ?>"<?= $aktif_riwayat ?>>
           Riwayat
         </a>
 
-        <a href="<?= e(url('/admin/pertanyaan.php')) ?>" <?php if ($halaman_aktif === 'pertanyaan.php' || $halaman_aktif === 'gaya.php') { echo 'aria-current="page"'; } ?>>
+        <a href="<?= e(url('/admin/pertanyaan.php')) ?>"<?= $aktif_admin ?>>
           Admin
         </a>
 
@@ -74,11 +104,11 @@ if (isset($judul) && $judul !== '') {
                 $nama_panggilan = 'Akun';
             }
         ?>
-          <a href="<?= e(url('/profil.php')) ?>" <?php if ($halaman_aktif === 'profil.php') { echo 'aria-current="page"'; } ?>>
+          <a href="<?= e(url('/profil.php')) ?>"<?= $aktif_akun ?>>
             <?= e($nama_panggilan) ?>
           </a>
         <?php } else { ?>
-          <a href="<?= e(url('/masuk.php')) ?>" <?php if ($halaman_aktif === 'masuk.php' || $halaman_aktif === 'daftar.php') { echo 'aria-current="page"'; } ?>>
+          <a href="<?= e(url('/masuk.php')) ?>"<?= $aktif_akun ?>>
             Masuk
           </a>
         <?php } ?>
