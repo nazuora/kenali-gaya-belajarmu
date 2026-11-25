@@ -169,3 +169,47 @@ require __DIR__ . '/includes/header.php'; //menginclude header
     function ambilElemen(id) {
       return document.getElementById(id);
     } //ngubah cara manggil element 
+
+    function tampilkanSoal() {
+    ambilElemen('teks-pertanyaan').textContent = dataSoal[indeksAktif].teks; //nampilkan teks pertanyaan
+    ambilElemen('nomor-soal').textContent = (indeksAktif + 1) + ' dari ' + dataSoal.length; //nampilkan progres kuis misal 1/15
+
+    const wadahPilihan = ambilElemen('pilihan-jawaban'); //ngambil wadah pilihan jawaban
+      wadahPilihan.innerHTML = ''; //terus dikosongkan supaya pas pindah dia gak tercampur sama soal sebelumnya
+    
+    //membuat tombol pilihan jawaban berdasarkan data yang diambil
+    dataSoal[indeksAktif].jawaban.forEach(function(itemJawaban) { 
+        const tombolPilihan = document.createElement('button');
+        tombolPilihan.type = 'button';
+        tombolPilihan.className = 'opt';
+        tombolPilihan.textContent = itemJawaban.teks;
+        
+
+        const apakahDipilih = (pilihanUser[indeksAktif] === itemJawaban.gaya);//meriksa opsinya udah dipilih atau belom
+        tombolPilihan.setAttribute('aria-pressed', apakahDipilih); //memberi tanda pada opsi yg dipilih
+
+        tombolPilihan.onclick = function() { //kalau pilihan opsi diklik
+          pilihanUser[indeksAktif] = itemJawaban.gaya; //nyimpan jawaban
+          tampilkanSoal(); //manggil fungsi untuk dijalankan lagi 
+        };
+        wadahPilihan.appendChild(tombolPilihan); //memasukkan tombol pilihan jawaban ke wadah pilihan
+      });
+
+      if (indeksAktif > 0) { //mengatur tombol kembali 
+        ambilElemen('tombol-kembali').style.visibility = 'visible'; 
+      } else {
+        ambilElemen('tombol-kembali').style.visibility = 'hidden';
+      }
+
+      ambilElemen('tombol-lanjut').disabled = (pilihanUser[indeksAktif] === null); //mengatur tombol lanjut
+
+      if (indeksAktif === dataSoal.length - 1) {
+        ambilElemen('tombol-lanjut').textContent = 'Lihat hasil';
+      } else {
+        ambilElemen('tombol-lanjut').textContent = 'Lanjut';
+      }
+    }
+
+    
+
+    
