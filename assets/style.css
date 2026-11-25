@@ -20,6 +20,8 @@
   --line: #E6DCC8;
   --err: #C2334D;
   --ok: #23825B;
+  --accent: #0E7490;       /* warna sorot saat kursor diarahkan (teal, senada ilustrasi Home) */
+  --accent-ink: #FFFFFF;   /* warna teks di atas warna sorot */
 }
 
 /* Mode gelap otomatis mengikuti pengaturan sistem */
@@ -32,6 +34,8 @@
     --line: #3A3A3A;
     --err: #FF8DA1;
     --ok: #7FE0B5;
+    --accent: #5EC4DC;
+    --accent-ink: #12313A;
   }
 }
 
@@ -44,6 +48,8 @@
   --line: #3A3A3A;
   --err: #FF8DA1;
   --ok: #7FE0B5;
+  --accent: #5EC4DC;
+  --accent-ink: #12313A;
 }
 
 
@@ -139,10 +145,21 @@ nav {
   padding: 6px 14px;
   border-radius: 999px;
   font-weight: 700;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
 }
 
+/* Saat kursor diarahkan: berubah jadi warna aksen */
 .links a:not(.btn):hover {
-  background: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+/* Menu halaman yang sedang dibuka tetap gelap, tidak ikut berubah */
+.links a[aria-current="page"]:hover {
+  background: var(--text);
+  color: var(--bg);
+  transform: none;
 }
 
 #jam {
@@ -234,6 +251,7 @@ h2 {
   font: inherit;
   font-weight: 900;
   cursor: pointer;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
 }
 
 /* Baris tombol (misalnya Kembali dan Lanjut) */
@@ -275,8 +293,26 @@ h2 {
   cursor: not-allowed;
 }
 
-.btn:hover:not(:disabled) {
-  filter: brightness(1.06);
+/* Hover tombol utama: warna aksen (:where dipakai agar warna abu-abu saat diklik tetap menang) */
+.btn:where(:not(.ghost):not(.red):not(:disabled)):hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+/* Hover tombol garis tepi: garis, teks, dan latar tipis berwarna aksen */
+.btn.ghost:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Hover tombol merah (hapus): terisi merah, tetap merah agar tidak membingungkan */
+.btn.red:hover:not(:disabled) {
+  background: var(--err);
+  color: #fff;
+  transform: translateY(-2px);
 }
 
 /* Tombol utama menjadi abu-abu saat diklik (kelas ditekan dipasang oleh skrip di footer) */
@@ -384,11 +420,12 @@ textarea.t:focus {
   font-weight: 700;
   text-align: left;
   cursor: pointer;
-  transition: transform .15s, border-color .15s;
+  transition: transform .15s, border-color .15s, background-color .15s;
 }
 
 .opt:hover {
-  border-color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
 }
 
 .opt:active {
@@ -474,13 +511,21 @@ textarea.t:focus {
   cursor: pointer;
 }
 
-.tabs button:hover {
-  background: transparent;
+.tabs button {
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
 }
 
-.tabs button[aria-selected="true"] {
+.tabs button:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+.tabs button[aria-selected="true"],
+.tabs button[aria-selected="true"]:hover {
   background: var(--text);
   color: var(--bg);
+  transform: none;
 }
 
 .panel h2 {
@@ -624,6 +669,15 @@ ul.tips li {
   color: var(--muted);
 }
 
+/* Hover baris riwayat */
+.head {
+  transition: background-color .2s ease;
+}
+
+.head:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
 /* Tanda panah, berputar saat detail dibuka */
 .chev {
   transition: transform .2s;
@@ -695,6 +749,18 @@ ul.tips li {
   color: var(--bg);
 }
 
+/* Hover pilihan Masuk / Daftar (yang sedang terpilih tidak berubah) */
+.seg button,
+.seg a {
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.seg button:not([aria-selected="true"]):hover,
+.seg a:not([aria-selected="true"]):hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
 /* Bagian foto dan nama di halaman profil */
 .who {
   display: flex;
@@ -736,6 +802,10 @@ ul.tips li {
   width: 1px;
   height: 1px;
   opacity: 0;
+}
+
+.file:hover {
+  color: var(--accent);
 }
 
 .file:focus-within {
