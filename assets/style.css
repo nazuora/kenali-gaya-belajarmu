@@ -279,8 +279,9 @@ h2 {
   filter: brightness(1.06);
 }
 
-/* Saat ditekan, tombol utama menjadi abu-abu */
-.btn:not(.ghost):not(.red):active {
+/* Tombol utama menjadi abu-abu saat ditekan dan selama halaman berpindah */
+.btn:not(.ghost):not(.red):active,
+.btn:not(.ghost):not(.red):focus {
   background: #808080;
   color: #fff;
 }
