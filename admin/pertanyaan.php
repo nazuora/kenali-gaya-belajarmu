@@ -158,7 +158,7 @@ while ($row = $resP->fetch_assoc()) {
 }
 
 if ($editData) {
-    $judulForm = 'Ubah Pertanyaan #' . (int)$editData['id'];
+    $judulForm = 'Ubah Pertanyaan #' . (int)$editData['urutan'];
     $nilaiIdForm = (int)$editData['id'];
     $nilaiTeksForm = $editData['teks'];
     $nilaiUrutanForm = (int)$editData['urutan'];
@@ -173,22 +173,18 @@ $judul = 'Kelola Pertanyaan Kuis';
 require __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="seg" style="grid-template-columns: 1fr; margin-bottom: 24px;">
-  <a href="<?= e(url('/admin/pertanyaan.php')) ?>" aria-selected="true">Kelola Pertanyaan Kuis</a>
-</div>
-
 <h1>Kelola Pertanyaan Kuis</h1>
 <p class="sub">Tambah, ubah, atau hapus daftar pertanyaan serta pilihan jawaban kuis gaya belajar.</p>
 
-<?php if ($pesan !== ''): ?>
+<?php if ($pesan !== '') { ?>
   <div class="card" style="background: var(--surface); border-color: var(--ok); color: var(--ok); padding: 12px 18px; margin-bottom: 16px;">
     <strong><?= e($pesan) ?></strong>
   </div>
-<?php endif; ?>
+<?php } ?>
 
-<?php if ($galat !== ''): ?>
+<?php if ($galat !== '') { ?>
   <div class="err" style="margin-bottom: 16px;"><?= e($galat) ?></div>
-<?php endif; ?>
+<?php } ?>
 
 <div class="card" style="margin-bottom: 28px;">
   <h2 style="margin-top: 0;"><?= e($judulForm) ?></h2>
@@ -196,7 +192,7 @@ require __DIR__ . '/../includes/header.php';
   <form method="POST">
     <?= csrf_field() ?>
     <input type="hidden" name="aksi" value="simpan">
-    <input type="hidden" name="id" value="<?= $nilaiIdForm ?>">
+    <input type="hidden" name="id" value="<?= e($nilaiIdForm) ?>">
 
     <div style="margin-bottom: 14px;">
       <label class="l" for="teks">Teks Pertanyaan</label>
@@ -205,13 +201,13 @@ require __DIR__ . '/../includes/header.php';
 
     <div style="margin-bottom: 18px; max-width: 200px;">
       <label class="l" for="urutan">Nomor Urutan</label>
-      <input class="t" type="number" name="urutan" id="urutan" value="<?= $nilaiUrutanForm ?>" required>
+      <input class="t" type="number" name="urutan" id="urutan" value="<?= e($nilaiUrutanForm) ?>" required>
     </div>
 
     <h3 style="font-size: 1.1rem; margin-bottom: 10px;">Pilihan Jawaban Berdasarkan Gaya Belajar</h3>
     <p class="hint" style="margin-bottom: 14px;">Isi opsi jawaban yang mencerminkan masing-masing kategori gaya belajar di bawah ini:</p>
 
-    <?php foreach ($gayaList as $gId => $gInfo): ?>
+    <?php foreach ($gayaList as $gId => $gInfo) { ?>
       <?php
         if (isset($editJawaban[$gId])) {
             $nilaiJawabanInput = $editJawaban[$gId];
@@ -227,28 +223,28 @@ require __DIR__ . '/../includes/header.php';
         </label>
         <input class="t" type="text" name="jawaban[<?= (int)$gId ?>]" value="<?= e($nilaiJawabanInput) ?>" placeholder="Tulis pilihan jawaban untuk gaya <?= e($gInfo['nama']) ?>..." required>
       </div>
-    <?php endforeach; ?>
+    <?php } ?>
 
     <div style="margin-top: 18px; display: flex; gap: 10px;">
       <button type="submit" class="btn">Simpan Pertanyaan</button>
-      <?php if ($editData): ?>
+      <?php if ($editData) { ?>
         <a href="<?= e(url('/admin/pertanyaan.php')) ?>" class="btn ghost">Batal Edit</a>
-      <?php endif; ?>
+      <?php } ?>
     </div>
   </form>
 </div>
 
-<h2>Daftar Pertanyaan (<?= count($pertanyaanList) ?>)</h2>
+<h2>Daftar Pertanyaan (<?= e(count($pertanyaanList)) ?>)</h2>
 
-<?php if (count($pertanyaanList) === 0): ?>
+<?php if (count($pertanyaanList) === 0) { ?>
   <div class="empty">Belum ada pertanyaan yang ditambahkan.</div>
-<?php else: ?>
+<?php } else { ?>
   <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-    <?php foreach ($pertanyaanList as $p): ?>
+    <?php foreach ($pertanyaanList as $p) { ?>
       <div class="card" style="margin-bottom: 0; padding: 18px 22px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
           <div>
-            <span style="font-weight: 900; color: var(--text); margin-right: 6px;">#<?= (int)$p['urutan'] ?></span>
+            <span style="font-weight: 900; color: var(--text); margin-right: 6px;">#<?= e((int)$p['urutan']) ?></span>
             <strong style="font-size: 1.05rem;"><?= e($p['teks']) ?></strong>
           </div>
 
@@ -258,22 +254,22 @@ require __DIR__ . '/../includes/header.php';
             <form method="POST" onsubmit="return confirm('Yakin ingin menghapus pertanyaan ini?');" style="display: inline;">
               <?= csrf_field() ?>
               <input type="hidden" name="aksi" value="hapus">
-              <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+              <input type="hidden" name="id" value="<?= e((int)$p['id']) ?>">
               <button type="submit" class="btn sm red">Hapus</button>
             </form>
           </div>
         </div>
 
         <ul style="margin: 8px 0 0 20px; padding: 0; font-size: 0.92rem; color: var(--muted);">
-          <?php foreach ($p['pilihan'] as $pil): ?>
+          <?php foreach ($p['pilihan'] as $pil) { ?>
             <li>
               <strong style="color: var(--text);"><?= e($pil['kode']) ?>:</strong> <?= e($pil['teks']) ?>
             </li>
-          <?php endforeach; ?>
+          <?php } ?>
         </ul>
       </div>
-    <?php endforeach; ?>
+    <?php } ?>
   </div>
-<?php endif; ?>
+<?php } ?>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>
