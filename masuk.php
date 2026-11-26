@@ -5,15 +5,16 @@
   pengguna dalam satu halaman menggunakan sistem tab.
 */
 
+// Memuat konfigurasi koneksi, helper, dan sesi
 require __DIR__ . '/config/koneksi.php';
 
-// Jika sudah login, langsung arahkan ke halaman kuis
+// Mengalihkan pengguna yang sudah login langsung ke halaman kuis
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     header('Location: ' . url('/kuis.php'));
     exit;
 }
 
-// Tentukan tab aktif ('masuk' atau 'daftar')
+// Menentukan tab aktif awal dari parameter URL (?tab=daftar)
 if (isset($_GET['tab']) && $_GET['tab'] === 'daftar') {
     $tab = 'daftar';
 } else {
@@ -26,7 +27,7 @@ $nilai = [
     'email' => '',
 ];
 
-// Proses pengiriman form masuk maupun daftar (POST)
+// Memproses pengiriman form masuk maupun daftar
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
 
@@ -48,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sandi = '';
     }
 
-    // 1. Proses masuk akun
+    // Proses autentikasi login pengguna
     if ($aksi === 'masuk') {
         $tab = 'masuk';
 
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 2. Proses daftar akun baru
+    // Proses registrasi akun baru dengan role default 'user'
     if ($aksi === 'daftar') {
         $tab = 'daftar';
 
@@ -128,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sss', $nilai['nama'], $nilai['email'], $hash);
 
             try {
-                // Untuk PHP di bawah 8.1, gagal simpan tidak melempar error, jadi dilempar manual
+               // Melempar mysqli_sql_exception saat query gagal agar error bisa ditangani
                 $stmt->execute();
                 $idBaru = (int)$db->insert_id;
                 $stmt->close();
@@ -155,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Menyiapkan status aktif tab dan visibilitas panel form
 if ($tab === 'masuk') {
     $selectedMasuk = 'true';
     $selectedDaftar = 'false';
@@ -167,6 +169,7 @@ if ($tab === 'masuk') {
     $kelasPanelDaftar = '';
 }
 
+// Memetakan pesan error per field sesuai tab aktif
 $errMasukEmail = '';
 if (isset($err['email']) && $tab === 'masuk') {
     $errMasukEmail = $err['email'];
@@ -197,6 +200,7 @@ if (isset($err['ulang']) && $tab === 'daftar') {
     $errDaftarUlang = $err['ulang'];
 }
 
+// Mempertahankan nilai email sesuai tab yang sedang aktif
 $nilaiEmailMasuk = '';
 if ($tab === 'masuk') {
     $nilaiEmailMasuk = $nilai['email'];
@@ -269,7 +273,7 @@ require __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-  // Beralih antara tab Masuk dan Daftar
+  // Mengalihkan tab aktif dan panel form tanpa memuat ulang halaman
   function gantiTab(keDaftar) {
     document.getElementById('t-in').setAttribute('aria-selected', !keDaftar);
     document.getElementById('t-up').setAttribute('aria-selected', keDaftar);

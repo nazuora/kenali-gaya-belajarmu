@@ -5,12 +5,13 @@
   data sesi serta cookie sesi, lalu mengarahkan ke halaman masuk.
 */
 
+// Memuat konfigurasi koneksi, helper URL, dan inisialisasi sesi
 require __DIR__ . '/config/koneksi.php';
 
-// Kosongkan seluruh data sesi yang sedang aktif
+// Mengosongkan seluruh data sesi yang aktif
 $_SESSION = [];
 
-// Hapus cookie sesi di browser jika memang digunakan
+// Menghapus cookie sesi di browser jika sesi menggunakan cookie
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
     setcookie(
@@ -24,7 +25,7 @@ if (ini_get('session.use_cookies')) {
     );
 }
 
-// Hancurkan sesi di server lalu arahkan ke halaman masuk
+// Menghancurkan sesi di server lalu mengalihkan pengguna ke halaman masuk
 session_destroy();
 
 header('Location: ' . url('/masuk.php'));

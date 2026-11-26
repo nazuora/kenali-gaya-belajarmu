@@ -5,7 +5,7 @@
   base URL dan sesi, serta menyediakan fungsi bantu keamanan dan format data.
 */
 
-// Koneksi ke database MariaDB/MySQL proyek Kenali Gaya Belajarmu
+// Menghubungkan aplikasi ke database MariaDB/MySQL dengan charset utf8mb4
 $host     = 'localhost';
 $username = 'root';
 $password = '';
@@ -24,7 +24,7 @@ try {
     exit('Koneksi ke database gagal: ' . $ex->getMessage());
 }
 
-// Base URL dan helper pembuat tautan halaman
+// Menentukan BASE_URL secara otomatis dan menyediakan helper url()
 $akarProyek = str_replace('\\', '/', (string)realpath(__DIR__ . '/..'));
 
 if (isset($_SERVER['DOCUMENT_ROOT'])) {
@@ -51,12 +51,12 @@ function url($jalur) {
     return BASE_URL . $jalur;
 }
 
-// Mulai sesi jika belum aktif
+// Memulai sesi PHP jika belum aktif
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Escape output HTML untuk mencegah XSS
+// Meng-escape output HTML untuk mencegah serangan XSS
 function e($teks) {
     if ($teks === null) {
         return '';
@@ -64,7 +64,7 @@ function e($teks) {
     return htmlspecialchars($teks, ENT_QUOTES, 'UTF-8');
 }
 
-// Cek status login dan hak akses admin
+// Membatasi akses halaman hanya untuk pengguna yang sudah login
 function wajib_login() {
     if (!isset($_SESSION['user'])) {
         header('Location: ' . url('/masuk.php'));
@@ -72,6 +72,7 @@ function wajib_login() {
     }
 }
 
+// Membatasi akses halaman khusus pengguna dengan role admin
 function wajib_admin() {
     wajib_login();
 
@@ -100,7 +101,7 @@ function wajib_admin() {
     }
 }
 
-// Perlindungan CSRF untuk pengiriman form POST
+// Membuat, menyisipkan, dan memverifikasi token CSRF untuk form POST
 function csrf_token() {
     if (empty($_SESSION['csrf'])) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
@@ -131,7 +132,7 @@ function csrf_periksa() {
     }
 }
 
-// Helper format nama dan tanggal Indonesia
+// Memformat nama depan dan tanggal ke bahasa Indonesia
 function nama_depan($nama_lengkap) {
     $pecah = explode(' ', trim($nama_lengkap));
     return $pecah[0];

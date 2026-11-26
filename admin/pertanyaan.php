@@ -5,12 +5,14 @@
   pertanyaan kuis serta pilihan jawaban berdasarkan gaya belajar.
 */
 
+// Memuat konfigurasi database, helper, dan membatasi akses hanya untuk admin
 require __DIR__ . '/../config/koneksi.php';
 wajib_admin();
 
 $pesan = '';
 $galat = '';
 
+// Memproses aksi simpan (tambah/ubah) dan hapus pertanyaan melalui POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_periksa();
 
@@ -45,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jawaban = [];
         }
 
+        // Menyaring jawaban valid untuk gaya_id 1, 2, dan 3
         $jawaban_bersih = [];
         foreach ($jawaban as $gaya_id => $teks_jawaban) {
             $gId = (int)$gaya_id;
@@ -61,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // Memvalidasi teks pertanyaan, nomor urutan, panjang karakter, dan kelengkapan opsi jawaban
         if ($teks === '') {
             $galat = 'Teks pertanyaan tidak boleh kosong.';
         } elseif ($urutan < 1) {
@@ -70,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (count($jawaban_bersih) < 3) {
             $galat = 'Semua pilihan jawaban untuk Visual, Auditori, dan Kinestetik harus diisi.';
         } else {
+            // Menyimpan pertanyaan dan pilihan jawaban dalam satu transaksi database
             $db->begin_transaction();
             try {
                 if ($id > 0) {
@@ -111,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = 0;
         }
 
+        // Menghapus pertanyaan berdasarkan ID
         if ($id > 0) {
             $stmt = $db->prepare('DELETE FROM pertanyaan WHERE id = ?');
             $stmt->bind_param('i', $id);
@@ -121,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Mengambil daftar kategori gaya belajar untuk form input
 $gayaList = [];
 $resGaya = $db->query('SELECT * FROM gaya_belajar ORDER BY id ASC');
 while ($row = $resGaya->fetch_assoc()) {
@@ -140,6 +147,7 @@ if (isset($_GET['edit'])) {
 $editData = null;
 $editJawaban = [];
 
+// Memuat data pertanyaan dan pilihan jawaban saat mode ubah (?edit=...) aktif
 if ($editId > 0) {
     $stmt = $db->prepare('SELECT * FROM pertanyaan WHERE id = ?');
     $stmt->bind_param('i', $editId);
@@ -160,6 +168,7 @@ if ($editId > 0) {
     }
 }
 
+// Mengambil seluruh pertanyaan beserta pilihan jawabannya untuk ditampilkan
 $pertanyaanList = [];
 $resP = $db->query('SELECT * FROM pertanyaan ORDER BY urutan ASC, id ASC');
 $stmtPilihan = $db->prepare('SELECT j.*, g.kode FROM jawaban j JOIN gaya_belajar g ON j.gaya_id = g.id WHERE j.pertanyaan_id = ?');
@@ -182,6 +191,7 @@ if ($resP) {
     $resP->free();
 }
 
+// Menentukan nomor urutan maksimum saat ini untuk nilai bawaan pertanyaan baru
 $resMax = $db->query('SELECT COALESCE(MAX(urutan), 0) FROM pertanyaan');
 if ($resMax) {
     $barisMax = $resMax->fetch_row();
@@ -195,6 +205,7 @@ if ($resMax) {
     $maxUrutan = 0;
 }
 
+// Menyiapkan nilai awal form tambah atau ubah pertanyaan
 if ($editData) {
     $judulForm = 'Ubah Pertanyaan #' . (int)$editData['urutan'];
     $nilaiIdForm = (int)$editData['id'];
