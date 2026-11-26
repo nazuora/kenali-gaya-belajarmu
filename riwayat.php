@@ -1,17 +1,39 @@
 <?php
+/*
+  Nama File  : riwayat.php
+  Keterangan : Menampilkan daftar riwayat hasil kuis gaya belajar milik
+  pengguna yang sedang masuk serta menyediakan fitur hapus
+  riwayat hasil kuis.
+*/
+
 // Sambungkan ke database, session, dan fungsi bantu
 require __DIR__ . '/config/koneksi.php';
 
 // Cek apakah pengguna sudah login dan ambil ID-nya
 $sudah_login = !empty($_SESSION['user']);
-$id_user     = $sudah_login ? (int)$_SESSION['user']['id'] : 0;
+if ($sudah_login && isset($_SESSION['user']['id'])) {
+    $id_user = (int)$_SESSION['user']['id'];
+} else {
+    $id_user = 0;
+}
 
 // ==========================================
 // 1. HAPUS RIWAYAT (DELETE)
 // ==========================================
-if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'hapus') {
+if (isset($_POST['aksi'])) {
+    $aksi = $_POST['aksi'];
+} else {
+    $aksi = '';
+}
+
+if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') {
     csrf_periksa(); // Cek token CSRF dari koneksi.php
-    $id_hasil = (int)($_POST['id'] ?? 0);
+
+    if (isset($_POST['id'])) {
+        $id_hasil = (int)$_POST['id'];
+    } else {
+        $id_hasil = 0;
+    }
 
     // Hapus hanya jika id hasil cocok dan milik user yang sedang login
     $stmt = mysqli_prepare($db, 'DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?');
@@ -30,7 +52,7 @@ if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? 
 $daftar_riwayat = [];
 if ($sudah_login) {
     $sql = 'SELECT h.id, h.persen_visual, h.persen_auditori, h.persen_kinestetik, h.dibuat_pada,
-                   g.kode, g.nama AS gaya, g.julukan, g.pengertian, g.tips
+                   g.kode, g.nama AS gaya, g.julukan, g.tips
             FROM hasil_kuis h
             JOIN gaya_belajar g ON g.id = h.gaya_utama_id
             WHERE h.user_id = ?
@@ -174,22 +196,22 @@ require __DIR__ . '/includes/header.php';
   <h1 class="judul-halaman">Riwayat Kuismu</h1>
   <p class="subjudul">Lihat hasil kuis yang pernah kamu kerjakan sebelumnya.</p>
 
-  <?php if (!$sudah_login): ?>
+  <?php if (!$sudah_login) { ?>
     <div class="kartu-kosong">
       <strong>Kamu belum masuk ke akun.</strong>
       <p>Silakan masuk terlebih dahulu agar riwayat kuis pribadimu bisa ditampilkan.</p>
       <a class="btn" href="<?= e(url('/masuk.php')) ?>">Masuk</a>
     </div>
 
-  <?php elseif (count($daftar_riwayat) === 0): ?>
+  <?php } elseif (count($daftar_riwayat) === 0) { ?>
     <div class="kartu-kosong">
       <strong>Belum ada riwayat kuis.</strong>
       <p>Akun ini belum pernah mengerjakan kuis. Yuk coba kerjakan kuis pertamamu!</p>
       <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai Kuis</a>
     </div>
 
-  <?php else: ?>
-    <?php foreach ($daftar_riwayat as $item): ?>
+  <?php } else { ?>
+    <?php foreach ($daftar_riwayat as $item) { ?>
       <?php
         // Tentukan warna sesuai kode gaya belajar (V = Visual, A = Auditori, K = Kinestetik)
         $kode = $item['kode'];
@@ -213,41 +235,40 @@ require __DIR__ . '/includes/header.php';
             </span>
             <div class="tanggal-riwayat"><?= e(tanggal_id($item['dibuat_pada'])) ?></div>
           </div>
-          <span aria-hidden="true">&#9662;</span>
+          <span aria-hidden="true">▾</span>
         </button>
 
         <!-- Isi detail hasil kuis -->
         <div class="isi-detail tersembunyi">
           <p><strong>Gaya Utama:</strong> <?= e($item['gaya']) ?> (<?= e($item['julukan']) ?>)</p>
-          <p><?= e($item['pengertian']) ?></p>
 
           <div class="baris-nilai">
             <div class="teks-nilai">
               <span>Visual</span>
-              <span><?= (int)$item['persen_visual'] ?>%</span>
+              <span><?= e((int)$item['persen_visual']) ?>%</span>
             </div>
             <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= (int)$item['persen_visual'] ?>%; background: #8B7CF0;"></div>
+              <div class="isi-bar" style="width: <?= e((int)$item['persen_visual']) ?>%; background: #8B7CF0;"></div>
             </div>
           </div>
 
           <div class="baris-nilai">
             <div class="teks-nilai">
               <span>Auditori</span>
-              <span><?= (int)$item['persen_auditori'] ?>%</span>
+              <span><?= e((int)$item['persen_auditori']) ?>%</span>
             </div>
             <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= (int)$item['persen_auditori'] ?>%; background: #FF9F7A;"></div>
+              <div class="isi-bar" style="width: <?= e((int)$item['persen_auditori']) ?>%; background: #FF9F7A;"></div>
             </div>
           </div>
 
           <div class="baris-nilai">
             <div class="teks-nilai">
               <span>Kinestetik</span>
-              <span><?= (int)$item['persen_kinestetik'] ?>%</span>
+              <span><?= e((int)$item['persen_kinestetik']) ?>%</span>
             </div>
             <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= (int)$item['persen_kinestetik'] ?>%; background: #5CCB9C;"></div>
+              <div class="isi-bar" style="width: <?= e((int)$item['persen_kinestetik']) ?>%; background: #5CCB9C;"></div>
             </div>
           </div>
 
@@ -262,14 +283,14 @@ require __DIR__ . '/includes/header.php';
             <form method="post" style="margin: 0;">
               <?= csrf_field() ?>
               <input type="hidden" name="aksi" value="hapus">
-              <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+              <input type="hidden" name="id" value="<?= e((int)$item['id']) ?>">
               <button type="button" class="btn red tombol-hapus">Hapus Hasil</button>
             </form>
           </div>
         </div>
       </div>
-    <?php endforeach; ?>
-  <?php endif; ?>
+    <?php } ?>
+  <?php } ?>
 </div>
 
 <script>
