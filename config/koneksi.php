@@ -19,9 +19,26 @@ mysqli_set_charset($db, 'utf8mb4');
 
 // Base URL dan helper pembuat tautan halaman
 $akarProyek = str_replace('\\', '/', (string)realpath(__DIR__ . '/..'));
-$dr = $_SERVER['DOCUMENT_ROOT'] ?? '';
-$akarServer = $dr !== '' ? str_replace('\\', '/', rtrim((string)realpath($dr), '/\\')) : '';
-define('BASE_URL', ($akarServer !== '' && stripos($akarProyek, $akarServer) === 0) ? (string)substr($akarProyek, strlen($akarServer)) : '');;
+
+if (isset($_SERVER['DOCUMENT_ROOT'])) {
+    $dr = $_SERVER['DOCUMENT_ROOT'];
+} else {
+    $dr = '';
+}
+
+if ($dr !== '') {
+    $akarServer = str_replace('\\', '/', rtrim((string)realpath($dr), '/\\'));
+} else {
+    $akarServer = '';
+}
+
+if ($akarServer !== '' && stripos($akarProyek, $akarServer) === 0) {
+    $nilaiBaseUrl = (string)substr($akarProyek, strlen($akarServer));
+} else {
+    $nilaiBaseUrl = '';
+}
+
+define('BASE_URL', $nilaiBaseUrl);
 
 function url($jalur) {
     return BASE_URL . $jalur;
@@ -48,9 +65,16 @@ function wajib_login() {
     }
 }
 
-function wajib_admin(): void {
+function wajib_admin() {
     wajib_login();
-    if ($_SESSION['user']['role'] !== 'admin') {
+
+    if (isset($_SESSION['user']['role'])) {
+        $roleUser = $_SESSION['user']['role'];
+    } else {
+        $roleUser = '';
+    }
+
+    if ($roleUser !== 'admin') {
         http_response_code(403);
         $judul = 'Khusus Admin';
         require __DIR__ . '/../includes/header.php';
@@ -82,8 +106,19 @@ function csrf_field() {
 }
 
 function csrf_periksa() {
-    $kirim = $_POST['csrf'] ?? '';
-    if (!hash_equals($_SESSION['csrf'] ?? '', $kirim)) {
+    if (isset($_POST['csrf'])) {
+        $kirim = (string)$_POST['csrf'];
+    } else {
+        $kirim = '';
+    }
+
+    if (isset($_SESSION['csrf'])) {
+        $tokenTersimpan = (string)$_SESSION['csrf'];
+    } else {
+        $tokenTersimpan = '';
+    }
+
+    if (!hash_equals($tokenTersimpan, $kirim)) {
         http_response_code(400);
         exit('Permintaan tidak valid. Muat ulang halaman lalu coba lagi.');
     }
