@@ -30,11 +30,11 @@ if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? 
 $daftar_riwayat = [];
 if ($sudah_login) {
     $sql = 'SELECT h.id, h.persen_visual, h.persen_auditori, h.persen_kinestetik, h.dibuat_pada,
-                   g.kode, g.nama AS gaya, g.julukan, g.pengertian, g.tips
-            FROM hasil_kuis h
-            JOIN gaya_belajar g ON g.id = h.gaya_utama_id
-            WHERE h.user_id = ?
-            ORDER BY h.dibuat_pada DESC, h.id DESC';
+               g.kode, g.nama AS gaya, g.julukan, g.kalimat_hasil, g.tips
+        FROM hasil_kuis h
+        JOIN gaya_belajar g ON g.id = h.gaya_utama_id
+        WHERE h.user_id = ?
+        ORDER BY h.dibuat_pada DESC, h.id DESC';
 
     $stmt = mysqli_prepare($db, $sql);
     mysqli_stmt_bind_param($stmt, 'i', $id_user);
@@ -92,9 +92,8 @@ require __DIR__ . '/includes/header.php';
 
         <!-- Detail hasil kuis (tersembunyi sampai tombol diklik) -->
         <div class="body hidden">
-          <p><strong>Gaya belajar utamamu:</strong> <?= e($item['gaya']) ?> (<?= e($item['julukan']) ?>)</p>
-          <p><?= e($item['pengertian']) ?></p>
-
+         <p><strong>Gaya belajar utamamu:</strong> <?= e($item['gaya']) ?> (<?= e($item['julukan']) ?>)</p>
+         <p><?= e($item['kalimat_hasil']) ?></p>
           <div class="row">
             <div class="lab">
               <span>Visual</span>
