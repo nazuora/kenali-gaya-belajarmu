@@ -761,6 +761,38 @@ ul.tips li {
   color: var(--accent);
 }
 
+.kotak-sandi {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.kotak-sandi input.t {
+  width: 100%;
+  margin-bottom: 0;
+  padding-right: 44px;
+}
+
+.tombol-mata {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.tombol-mata:hover {
+  color: var(--text);
+}
+
 /* Bagian foto dan nama di halaman profil */
 .who {
   display: flex;

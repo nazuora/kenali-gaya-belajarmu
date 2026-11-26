@@ -264,15 +264,27 @@ require __DIR__ . '/includes/header.php';
           Masukkan kata sandi untuk konfirmasi
         </label>
 
-        <input
-          class="t"
-          id="sandi"
-          name="sandi"
-          type="password"
-          required
-          autocomplete="current-password"
-          style="margin-bottom:12px"
-        >
+        <div class="kotak-sandi" style="margin-bottom:12px">
+          <input
+            class="t"
+            id="sandi"
+            name="sandi"
+            type="password"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
+            <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
 
         <button class="btn red" type="submit">
           Hapus Akun Saya
@@ -301,6 +313,31 @@ document.getElementById('foto').onchange = function(event) {
 
     reader.readAsDataURL(file);
 };
+
+// Menampilkan atau menyembunyikan teks sandi saat tombol ikon mata diklik
+document.querySelectorAll('.tombol-mata').forEach(function(tombol) {
+    tombol.addEventListener('click', function() {
+        const wadah = tombol.closest('.kotak-sandi');
+        const inputSandi = wadah ? wadah.querySelector('input') : null;
+        if (!inputSandi) return;
+
+        const sedangTerlihat = inputSandi.type === 'text';
+        inputSandi.type = sedangTerlihat ? 'password' : 'text';
+
+        tombol.setAttribute('aria-pressed', String(!sedangTerlihat));
+        tombol.setAttribute(
+            'aria-label',
+            sedangTerlihat ? 'Tampilkan kata sandi' : 'Sembunyikan kata sandi'
+        );
+
+        const ikonBuka = tombol.querySelector('.ikon-mata');
+        const ikonTutup = tombol.querySelector('.ikon-mata-tutup');
+        if (ikonBuka && ikonTutup) {
+            ikonBuka.classList.toggle('hidden', !sedangTerlihat);
+            ikonTutup.classList.toggle('hidden', sedangTerlihat);
+        }
+    });
+});
 </script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -235,7 +235,20 @@ require __DIR__ . '/includes/header.php';
         <div class="err"><?= e($errMasukEmail) ?></div>
 
         <label class="l" for="in-sandi">Kata sandi</label>
-        <input class="t" id="in-sandi" name="sandi" type="password" autocomplete="current-password">
+        <div class="kotak-sandi">
+  <input class="t" id="in-sandi" name="sandi" type="password" autocomplete="current-password">
+  <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
+    <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+  </button>
+</div>
         <div class="err"><?= e($errMasukSandi) ?></div>
 
         <button class="btn" type="submit" style="width:100%">Masuk</button>
@@ -259,11 +272,37 @@ require __DIR__ . '/includes/header.php';
         <div class="err"><?= e($errDaftarEmail) ?></div>
 
         <label class="l" for="up-sandi">Kata sandi</label>
-        <input class="t" id="up-sandi" name="sandi" type="password" autocomplete="new-password">
+        <div class="kotak-sandi">
+          <input class="t" id="up-sandi" name="sandi" type="password" autocomplete="new-password">
+          <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
+            <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
         <div class="err"><?= e($errDaftarSandi) ?></div>
 
         <label class="l" for="up-ulang">Ulangi kata sandi</label>
-        <input class="t" id="up-ulang" name="ulang" type="password" autocomplete="new-password">
+        <div class="kotak-sandi">
+          <input class="t" id="up-ulang" name="ulang" type="password" autocomplete="new-password">
+          <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
+            <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
         <div class="err"><?= e($errDaftarUlang) ?></div>
 
         <button class="btn" type="submit" style="width:100%">Daftar</button>
@@ -288,6 +327,31 @@ require __DIR__ . '/includes/header.php';
   document.getElementById('t-up').onclick = function() {
     gantiTab(true);
   };
+
+  // Menampilkan atau menyembunyikan teks sandi saat tombol ikon mata diklik
+  document.querySelectorAll('.tombol-mata').forEach(function(tombol) {
+    tombol.addEventListener('click', function() {
+      const wadah = tombol.closest('.kotak-sandi');
+      const inputSandi = wadah ? wadah.querySelector('input') : null;
+      if (!inputSandi) return;
+
+      const sedangTerlihat = inputSandi.type === 'text';
+      inputSandi.type = sedangTerlihat ? 'password' : 'text';
+
+      tombol.setAttribute('aria-pressed', String(!sedangTerlihat));
+      tombol.setAttribute(
+        'aria-label',
+        sedangTerlihat ? 'Tampilkan kata sandi' : 'Sembunyikan kata sandi'
+      );
+
+      const ikonBuka = tombol.querySelector('.ikon-mata');
+      const ikonTutup = tombol.querySelector('.ikon-mata-tutup');
+      if (ikonBuka && ikonTutup) {
+        ikonBuka.classList.toggle('hidden', !sedangTerlihat);
+        ikonTutup.classList.toggle('hidden', sedangTerlihat);
+      }
+    });
+  });
 </script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
