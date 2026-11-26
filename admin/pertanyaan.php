@@ -56,6 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($teks === '') {
             $galat = 'Teks pertanyaan tidak boleh kosong.';
+        } elseif ($urutan < 1) {
+            $galat = 'Nomor urutan minimal 1.';
         } elseif (count($jawaban_bersih) < 3) {
             $galat = 'Semua pilihan jawaban untuk Visual, Auditori, dan Kinestetik harus diisi.';
         } else {
@@ -65,15 +67,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $db->prepare('UPDATE pertanyaan SET teks = ?, urutan = ? WHERE id = ?');
                     $stmt->bind_param('sii', $teks, $urutan, $id);
                     $stmt->execute();
+                    $stmt->close();
 
                     $stmtHapusJawaban = $db->prepare('DELETE FROM jawaban WHERE pertanyaan_id = ?');
                     $stmtHapusJawaban->bind_param('i', $id);
                     $stmtHapusJawaban->execute();
+                    $stmtHapusJawaban->close();
                 } else {
                     $stmt = $db->prepare('INSERT INTO pertanyaan (teks, urutan) VALUES (?, ?)');
                     $stmt->bind_param('si', $teks, $urutan);
                     $stmt->execute();
                     $id = (int)$db->insert_id;
+                    $stmt->close();
                 }
 
                 $stmtJ = $db->prepare('INSERT INTO jawaban (pertanyaan_id, gaya_id, teks) VALUES (?, ?, ?)');
@@ -81,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtJ->bind_param('iis', $id, $gId, $tJ);
                     $stmtJ->execute();
                 }
+                $stmtJ->close();
 
                 $db->commit();
                 $pesan = 'Pertanyaan berhasil disimpan.';
@@ -100,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare('DELETE FROM pertanyaan WHERE id = ?');
             $stmt->bind_param('i', $id);
             $stmt->execute();
+            $stmt->close();
             $pesan = 'Pertanyaan berhasil dihapus.';
         }
     }
@@ -110,6 +117,9 @@ $resGaya = $db->query('SELECT * FROM gaya_belajar ORDER BY id ASC');
 while ($row = $resGaya->fetch_assoc()) {
     $id_gaya = (int)$row['id'];
     $gayaList[$id_gaya] = $row;
+}
+if ($resGaya) {
+    $resGaya->free();
 }
 
 if (isset($_GET['edit'])) {
@@ -125,7 +135,9 @@ if ($editId > 0) {
     $stmt = $db->prepare('SELECT * FROM pertanyaan WHERE id = ?');
     $stmt->bind_param('i', $editId);
     $stmt->execute();
+    $resEdit = $stmt->get_result();
     $editData = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
     if ($editData) {
         $resJ = $db->prepare('SELECT * FROM jawaban WHERE pertanyaan_id = ?');
@@ -136,6 +148,7 @@ if ($editId > 0) {
             $id_gaya_j = (int)$j['gaya_id'];
             $editJawaban[$id_gaya_j] = $j['teks'];
         }
+        $resJ->close();
     }
 }
 
@@ -155,6 +168,10 @@ while ($row = $resP->fetch_assoc()) {
         $row['pilihan'][$id_gaya_sub] = $jSub;
     }
     $pertanyaanList[] = $row;
+}
+$stmtPilihan->close();
+if ($resP) {
+    $resP->free();
 }
 
 if ($editData) {
