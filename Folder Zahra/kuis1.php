@@ -53,7 +53,7 @@ if (!is_array($jawabanUser) || count($jawabanUser) === 0) {
     
         $totalJawab = $totalV + $totalA + $totalK; //penjumlahan akhir
 
-if ($totalJawab !== 15) {
+if ($totalJawab === 0) {
             $galat = 'Pilihan jawaban tidak valid. Silakan coba lagi.'; //memeriksa apakah semua jawaban memang dari opsi yang tersedia
         } else {
             // Hitung persentase tiap gaya belajar agar totalnya pas 100% untuk ditampilkan di hasil
