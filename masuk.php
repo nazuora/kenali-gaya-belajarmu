@@ -236,19 +236,19 @@ require __DIR__ . '/includes/header.php';
 
         <label class="l" for="in-sandi">Kata sandi</label>
         <div class="kotak-sandi">
-  <input class="t" id="in-sandi" name="sandi" type="password" autocomplete="current-password">
-  <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
-    <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-      <circle cx="12" cy="12" r="3"></circle>
-    </svg>
-    <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
-      <line x1="1" y1="1" x2="23" y2="23"></line>
-    </svg>
-  </button>
-</div>
+          <input class="t" id="in-sandi" name="sandi" type="password" autocomplete="current-password">
+          <button type="button" class="tombol-mata" aria-label="Tampilkan kata sandi" aria-pressed="false">
+            <svg class="ikon-mata" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="ikon-mata-tutup hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94"></path>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.85 21.85 0 0 1-2.16 3.19"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
         <div class="err"><?= e($errMasukSandi) ?></div>
 
         <button class="btn" type="submit" style="width:100%">Masuk</button>
