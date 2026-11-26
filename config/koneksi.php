@@ -11,11 +11,18 @@ $username = 'root';
 $password = '';
 $database = 'kenali_gaya_belajar';
 
-$db = mysqli_connect($host, $username, $password, $database);
-if (!$db) {
-    die('Koneksi ke database gagal: ' . mysqli_connect_error());
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    $db = mysqli_connect($host, $username, $password, $database);
+
+    if ($db) {
+        mysqli_set_charset($db, 'utf8mb4');
+    }
+} catch (mysqli_sql_exception $ex) {
+    http_response_code(500);
+    exit('Koneksi ke database gagal: ' . $ex->getMessage());
 }
-mysqli_set_charset($db, 'utf8mb4');
 
 // Base URL dan helper pembuat tautan halaman
 $akarProyek = str_replace('\\', '/', (string)realpath(__DIR__ . '/..'));
@@ -118,7 +125,7 @@ function csrf_periksa() {
         $tokenTersimpan = '';
     }
 
-    if (!hash_equals($tokenTersimpan, $kirim)) {
+    if ($tokenTersimpan === '' || !hash_equals($tokenTersimpan, $kirim)) {
         http_response_code(400);
         exit('Permintaan tidak valid. Muat ulang halaman lalu coba lagi.');
     }

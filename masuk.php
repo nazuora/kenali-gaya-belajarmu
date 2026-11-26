@@ -103,10 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (mb_strlen($nilai['nama']) < 4) {
             $err['nama'] = 'Isi nama minimal 4 huruf.';
+        } elseif (mb_strlen($nilai['nama']) > 60) {
+            $err['nama'] = 'Nama maksimal 60 karakter.';
         }
 
         if (!filter_var($nilai['email'], FILTER_VALIDATE_EMAIL)) {
             $err['email'] = 'Format email belum benar, contoh: nama@email.com.';
+        } elseif (strlen($nilai['email']) > 100) {
+            $err['email'] = 'Email maksimal 100 karakter.';
         }
 
         if (strlen($sandi) < 8) {

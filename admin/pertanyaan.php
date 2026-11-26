@@ -54,10 +54,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        $jawabanPanjang = false;
+        foreach ($jawaban_bersih as $tJ) {
+            if (mb_strlen($tJ) > 255) {
+                $jawabanPanjang = true;
+            }
+        }
+
         if ($teks === '') {
             $galat = 'Teks pertanyaan tidak boleh kosong.';
         } elseif ($urutan < 1) {
             $galat = 'Nomor urutan minimal 1.';
+        } elseif (mb_strlen($teks) > 255 || $jawabanPanjang) {
+            $galat = 'Teks pertanyaan dan tiap jawaban maksimal 255 karakter.';
         } elseif (count($jawaban_bersih) < 3) {
             $galat = 'Semua pilihan jawaban untuk Visual, Auditori, dan Kinestetik harus diisi.';
         } else {
@@ -92,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pesan = 'Pertanyaan berhasil disimpan.';
             } catch (Exception $e) {
                 $db->rollback();
-                $galat = 'Gagal menyimpan data: ' . $e->getMessage();
+                $galat = 'Gagal menyimpan data. Coba lagi.';
             }
         }
     } elseif ($aksi === 'hapus') {
@@ -135,7 +144,6 @@ if ($editId > 0) {
     $stmt = $db->prepare('SELECT * FROM pertanyaan WHERE id = ?');
     $stmt->bind_param('i', $editId);
     $stmt->execute();
-    $resEdit = $stmt->get_result();
     $editData = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
