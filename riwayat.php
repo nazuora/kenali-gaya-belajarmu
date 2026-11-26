@@ -1,4 +1,10 @@
 <?php
+/*
+  File: riwayat.php
+  Keterangan: Halaman riwayat hasil kuis milik pengguna
+  yang sedang login beserta fitur hapus riwayat.
+*/
+
 // Sambungkan ke database, session, dan fungsi bantu
 require __DIR__ . '/config/koneksi.php';
 
@@ -15,9 +21,11 @@ if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? 
 
     // Hapus hanya jika id hasil cocok dan milik user yang sedang login
     $stmt = mysqli_prepare($db, 'DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?');
-    mysqli_stmt_bind_param($stmt, 'ii', $id_hasil, $id_user);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'ii', $id_hasil, $id_user);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+    }
 
     // Redirect agar tidak kirim ulang form saat di-refresh
     header('Location: ' . url('/riwayat.php'));
@@ -37,14 +45,18 @@ if ($sudah_login) {
         ORDER BY h.dibuat_pada DESC, h.id DESC';
 
     $stmt = mysqli_prepare($db, $sql);
-    mysqli_stmt_bind_param($stmt, 'i', $id_user);
-    mysqli_stmt_execute($stmt);
-    $hasil_query = mysqli_stmt_get_result($stmt);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $id_user);
+        mysqli_stmt_execute($stmt);
+        $hasil_query = mysqli_stmt_get_result($stmt);
 
-    while ($baris = mysqli_fetch_assoc($hasil_query)) {
-        $daftar_riwayat[] = $baris;
+        if ($hasil_query) {
+            while ($baris = mysqli_fetch_assoc($hasil_query)) {
+                $daftar_riwayat[] = $baris;
+            }
+        }
+        mysqli_stmt_close($stmt);
     }
-    mysqli_stmt_close($stmt);
 }
 
 $judul = 'Riwayat Kuis';
@@ -76,8 +88,8 @@ require __DIR__ . '/includes/header.php';
   <?php elseif (count($daftar_riwayat) === 0): ?>
     <div class="empty">
       <strong>Belum ada riwayat kuis.</strong>
-      <p>Akun ini belum pernah mengerjakan kuis. Yuk coba kerjakan kuis pertamamu!</p>
-      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai kuis</a>
+      <p>Akun ini belum pernah mengerjakan kuis. Yuk baca petunjuk dulu sebelum mulai kuis!</p>
+      <a class="btn" href="<?= e(url('/petunjuk.php')) ?>">Mulai Kuis</a>
     </div>
 
   <?php else: ?>
@@ -160,14 +172,30 @@ require __DIR__ . '/includes/header.php';
 
   // Minta klik dua kali sebelum benar-benar mengirim form hapus
   document.querySelectorAll('.tombol-hapus').forEach(function (tombolHapus) {
+    const teksAwal = tombolHapus.textContent;
+    let timerReset = null;
+
+    function resetTombol() {
+      tombolHapus.dataset.yakin = '0';
+      tombolHapus.textContent = teksAwal;
+      if (timerReset) {
+        clearTimeout(timerReset);
+        timerReset = null;
+      }
+    }
+
     tombolHapus.addEventListener('click', function () {
       if (tombolHapus.dataset.yakin === '1') {
+        clearTimeout(timerReset);
         tombolHapus.closest('form').submit();
       } else {
         tombolHapus.dataset.yakin = '1';
         tombolHapus.textContent = 'Klik lagi untuk hapus';
+        timerReset = setTimeout(resetTombol, 4000);
       }
     });
+
+    tombolHapus.addEventListener('blur', resetTombol);
   });
 </script>
 
