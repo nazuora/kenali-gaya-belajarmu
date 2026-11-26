@@ -1,4 +1,9 @@
 <?php
+/*
+  File: petunjuk.php
+  Keterangan: Halaman petunjuk aturan dan cara mengerjakan
+  kuis gaya belajar sebelum pengguna mulai menjawab soal.
+*/
 
 session_start(); // memulai session atau menyimpan informasi sementara
   $_SESSION['sudah_baca_petunjuk'] = true; // menyimpan informasi pengguna udah lewat hal petunjuk

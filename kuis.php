@@ -1,4 +1,10 @@
 <?php
+/*
+  File: kuis.php
+  Keterangan: Halaman pengerjaan kuis gaya belajar
+  untuk menghitung skor dan persentase Visual, Auditori,
+  dan Kinestetik serta menyimpan hasilnya ke riwayat.
+*/
 
 require __DIR__ . '/config/koneksi.php'; //memanggil dan menjalankan file koneksi.php
 
