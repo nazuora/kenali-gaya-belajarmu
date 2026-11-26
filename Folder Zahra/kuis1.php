@@ -202,14 +202,27 @@ require __DIR__ . '/includes/header.php'; //menginclude header
       }
 
       ambilElemen('tombol-lanjut').disabled = (pilihanUser[indeksAktif] === null); //mengatur tombol lanjut
-
-      if (indeksAktif === dataSoal.length - 1) {
+      if (indeksAktif === dataSoal.length - 1) { //meriksa apakah pengguna berada di soal terkahir atau tidak
         ambilElemen('tombol-lanjut').textContent = 'Lihat hasil';
       } else {
         ambilElemen('tombol-lanjut').textContent = 'Lanjut';
       }
     }
+      
 
+    ambilElemen('tombol-kembali').onclick = function() {   
+      if (indeksAktif > 0) {
+        indeksAktif--;
+        tampilkanSoal();
+      }
+    };
+    //mengatur fungsi tombol kembali dan ngubah tampilan ..../....(cth 1/15) mengikuti nomor soal 
     
+    ambilElemen('tombol-lanjut').onclick = function() {
+      if (indeksAktif < dataSoal.length - 1) {
+        indeksAktif++;
+        tampilkanSoal();
+        return;
+      }
 
     
