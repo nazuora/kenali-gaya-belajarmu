@@ -1,27 +1,24 @@
 <?php
 /*
   File: hasil.php
-  Keterangan: Menampilkan hasil kuis gaya belajar (Visual, Auditori,
-  Kinestetik), persentase tiap gaya, ciri-ciri, tips belajar, serta
-  menyimpan hasil ke tabel hasil_kuis.
+  Keterangan:
+  Menampilkan hasil kuis gaya belajar dan menyediakan
+  fitur penyimpanan hasil ke riwayat.
 */
 
-require __DIR__ . '/config/koneksi.php';
+require __DIR__ . '/../config/koneksi.php';
 
+// Memastikan pengguna sudah login
 if (empty($_SESSION['user'])) {
     header('Location: ' . url('/masuk.php'));
     exit;
 }
 
-if (isset($_SESSION['user']['id'])) {
-    $userId = (int)$_SESSION['user']['id'];
-} else {
-    $userId = 0;
-}
+$userId = (int) $_SESSION['user']['id'];
 
+// Data gaya belajar
 $daftarGaya = [
     1 => [
-        'kode' => 'V',
         'nama' => 'Visual',
         'judul' => 'Sang Pengamat Visual (Visual)',
         'deskripsi' => 'Orang visual menyerap informasi dengan baik melalui gambar, warna, dan penglihatan.',
@@ -40,7 +37,6 @@ $daftarGaya = [
         ]
     ],
     2 => [
-        'kode' => 'A',
         'nama' => 'Auditori',
         'judul' => 'Sang Pendengar Aktif (Auditori)',
         'deskripsi' => 'Orang auditori menyerap informasi dengan baik melalui suara, penjelasan, dan percakapan.',
@@ -59,7 +55,6 @@ $daftarGaya = [
         ]
     ],
     3 => [
-        'kode' => 'K',
         'nama' => 'Kinestetik',
         'judul' => 'Sang Pembelajar Aktif (Kinestetik)',
         'deskripsi' => 'Orang kinestetik menyerap informasi paling baik lewat gerakan dan pengalaman langsung.',
@@ -79,35 +74,27 @@ $daftarGaya = [
     ]
 ];
 
+// Variabel hasil
 $hasil = null;
 $hasilPending = false;
 $pesanTersimpan = false;
 $pesanError = '';
 
-// Proses simpan hasil sementara ke tabel hasil_kuis
+// PROSES SIMPAN HASIL
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     csrf_periksa();
 
-    if (isset($_POST['aksi'])) {
-        $aksi = $_POST['aksi'];
-    } else {
-        $aksi = '';
-    }
+    $aksi = $_POST['aksi'] ?? '';
 
     if ($aksi === 'simpan') {
-        if (isset($_SESSION['hasil_kuis_pending'])) {
-            $pending = $_SESSION['hasil_kuis_pending'];
-        } else {
-            $pending = null;
-        }
 
-        if (isset($pending['user_id'])) {
-            $pendingUserId = (int)$pending['user_id'];
-        } else {
-            $pendingUserId = 0;
-        }
+        $pending = $_SESSION['hasil_kuis_pending'] ?? null;
 
-        if (!is_array($pending) || $pendingUserId !== $userId) {
+        if (
+            !is_array($pending) ||
+            (int)($pending['user_id'] ?? 0) !== $userId
+        ) {
             header('Location: ' . url('/kuis.php'));
             exit;
         }
@@ -117,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $persenK = (int)$pending['persen_kinestetik'];
         $gayaId = (int)$pending['gaya_utama_id'];
 
+        // Validasi hasil
         if (
             $persenV < 0 || $persenV > 100 ||
             $persenA < 0 || $persenA > 100 ||
@@ -127,35 +115,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Simpan ke database
         $stmt = $db->prepare(
-            'INSERT INTO hasil_kuis (user_id, gaya_utama_id, persen_visual, persen_auditori, persen_kinestetik) VALUES (?, ?, ?, ?, ?)'
+            "INSERT INTO hasil_kuis
+            (user_id, gaya_utama_id, persen_visual,
+             persen_auditori, persen_kinestetik)
+            VALUES (?, ?, ?, ?, ?)"
         );
-        $stmt->bind_param('iiiii', $userId, $gayaId, $persenV, $persenA, $persenK);
+
+        $stmt->bind_param(
+            'iiiii',
+            $userId,
+            $gayaId,
+            $persenV,
+            $persenA,
+            $persenK
+        );
 
         if ($stmt->execute()) {
-            $idBaru = (int)$db->insert_id;
-            unset($_SESSION['hasil_kuis_pending']);
-            $stmt->close();
 
-            header('Location: ' . url('/hasil.php?id=' . $idBaru . '&tersimpan=1'));
+            $idBaru = $db->insert_id;
+
+            // Hapus hasil sementara
+            unset($_SESSION['hasil_kuis_pending']);
+
+            header(
+                'Location: ' .
+                url('/new/hasil1.php?id=' . $idBaru . '&tersimpan=1')
+            );
             exit;
+
         } else {
             $pesanError = 'Hasil kuis gagal disimpan. Silakan coba kembali.';
-            $stmt->close();
         }
+
+        $stmt->close();
     }
 }
 
-// Mengambil hasil yang sudah tersimpan di database berdasarkan ID
+// MENGAMBIL HASIL YANG SUDAH TERSIMPAN
 if (isset($_GET['id'])) {
+
     $idHasil = (int)$_GET['id'];
 
-    $stmt = $db->prepare('SELECT * FROM hasil_kuis WHERE id = ? AND user_id = ? LIMIT 1');
+    $stmt = $db->prepare(
+        "SELECT *
+         FROM hasil_kuis
+         WHERE id = ? AND user_id = ?
+         LIMIT 1"
+    );
+
     $stmt->bind_param('ii', $idHasil, $userId);
     $stmt->execute();
 
     $result = $stmt->get_result();
     $hasil = $result->fetch_assoc();
+
     $stmt->close();
 
     if (!$hasil) {
@@ -163,23 +178,17 @@ if (isset($_GET['id'])) {
         exit;
     }
 
-    if (isset($_GET['tersimpan']) && $_GET['tersimpan'] == '1') {
-        $pesanTersimpan = true;
-    }
+    $pesanTersimpan = isset($_GET['tersimpan']);
+
+// MENGAMBIL HASIL SEMENTARA
 } else {
-    if (isset($_SESSION['hasil_kuis_pending'])) {
-        $pending = $_SESSION['hasil_kuis_pending'];
-    } else {
-        $pending = null;
-    }
 
-    if (isset($pending['user_id'])) {
-        $pendingUserId = (int)$pending['user_id'];
-    } else {
-        $pendingUserId = 0;
-    }
+    $pending = $_SESSION['hasil_kuis_pending'] ?? null;
 
-    if (!is_array($pending) || $pendingUserId !== $userId) {
+    if (
+        !is_array($pending) ||
+        (int)($pending['user_id'] ?? 0) !== $userId
+    ) {
         header('Location: ' . url('/kuis.php'));
         exit;
     }
@@ -188,18 +197,15 @@ if (isset($_GET['id'])) {
     $hasilPending = true;
 }
 
+// Menentukan gaya belajar utama
 $gayaId = (int)$hasil['gaya_utama_id'];
-if (!isset($daftarGaya[$gayaId])) {
-    $gayaId = 1;
-}
 $gaya = $daftarGaya[$gayaId];
 
 $persenV = (int)$hasil['persen_visual'];
 $persenA = (int)$hasil['persen_auditori'];
 $persenK = (int)$hasil['persen_kinestetik'];
 
-$judul = 'Hasil Kuis Gaya Belajar';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
@@ -235,20 +241,20 @@ require __DIR__ . '/includes/header.php';
         align-items: center;
         margin-bottom: 8px;
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 500;
     }
 
     .progress-track {
         width: 100%;
         height: 12px;
-        background: var(--line);
+        background: #414141;
         border-radius: 20px;
         overflow: hidden;
     }
 
     .progress-fill {
         height: 100%;
-        background: var(--text);
+        background: #f5f5f5;
         border-radius: 20px;
     }
 
@@ -271,7 +277,6 @@ require __DIR__ . '/includes/header.php';
         display: inline-block;
         margin-top: 12px;
     }
-
     .aksi-hasil {
         display: flex;
         align-items: center;
@@ -293,83 +298,93 @@ require __DIR__ . '/includes/header.php';
     <div class="persentase-item">
         <div class="persentase-label">
             <span>Visual</span>
-            <span><?= e($persenV) ?>%</span>
+            <span><?= $persenV ?>%</span>
         </div>
         <div class="progress-track">
-            <div class="progress-fill" style="width:<?= e($persenV) ?>%"></div>
+            <div class="progress-fill"
+                 style="width:<?= $persenV ?>%">
+            </div>
         </div>
     </div>
 
     <div class="persentase-item">
         <div class="persentase-label">
             <span>Auditori</span>
-            <span><?= e($persenA) ?>%</span>
+            <span><?= $persenA ?>%</span>
         </div>
         <div class="progress-track">
-            <div class="progress-fill" style="width:<?= e($persenA) ?>%"></div>
+            <div class="progress-fill"
+                 style="width:<?= $persenA ?>%">
+            </div>
         </div>
     </div>
 
     <div class="persentase-item">
         <div class="persentase-label">
             <span>Kinestetik</span>
-            <span><?= e($persenK) ?>%</span>
+            <span><?= $persenK ?>%</span>
         </div>
         <div class="progress-track">
-            <div class="progress-fill" style="width:<?= e($persenK) ?>%"></div>
+            <div class="progress-fill"
+                 style="width:<?= $persenK ?>%">
+            </div>
         </div>
     </div>
 
     <h2>Ciri-ciri gaya belajar</h2>
 
     <ul>
-        <?php foreach ($gaya['ciri'] as $ciri) { ?>
+        <?php foreach ($gaya['ciri'] as $ciri): ?>
             <li><?= e($ciri) ?></li>
-        <?php } ?>
+        <?php endforeach; ?>
     </ul>
 
     <h2>Tips belajar untukmu</h2>
 
     <ul>
-        <?php foreach ($gaya['tips'] as $tip) { ?>
+        <?php foreach ($gaya['tips'] as $tip): ?>
             <li><?= e($tip) ?></li>
-        <?php } ?>
+        <?php endforeach; ?>
     </ul>
 
-    <?php if ($pesanTersimpan) { ?>
-        <p class="status-hasil" style="color:var(--ok)">
+    <?php if ($pesanTersimpan): ?>
+
+        <p class="status-hasil" style="color:#78d6aa">
             Hasil tersimpan di Riwayat.
         </p>
-    <?php } ?>
 
-    <?php if ($pesanError !== '') { ?>
-        <p class="status-hasil" style="color:var(--err)">
+    <?php endif; ?>
+
+    <?php if ($pesanError !== ''): ?>
+
+        <p class="status-hasil">
             <?= e($pesanError) ?>
         </p>
-    <?php } ?>
+
+    <?php endif; ?>
 
     <div class="aksi-hasil">
 
-        <?php if ($hasilPending) { ?>
-            <form method="POST">
-                <?= csrf_field() ?>
-                <input type="hidden" name="aksi" value="simpan">
-                <button type="submit" class="btn tombol-hasil">
-                    Simpan Hasil Quiz
-                </button>
-            </form>
-        <?php } ?>
+    <?php if ($hasilPending): ?>
 
-        <a href="<?= e(url('/jenis.php?gaya=' . $gaya['kode'])) ?>" class="btn tombol-hasil">
-            Lihat penjelasan <?= e($gaya['nama']) ?>
-        </a>
+        <form method="POST">
+            <?= csrf_field() ?>
 
-        <a href="<?= e(url('/kuis.php')) ?>" class="btn tombol-hasil">
-            Ulangi kuis
-        </a>
+            <input type="hidden" name="aksi" value="simpan">
 
-    </div>
+            <button type="submit" class="btn tombol-hasil">
+                Simpan Hasil Quiz
+            </button>
+        </form>
+
+    <?php endif; ?>
+
+    <a href="<?= e(url('/kuis.php')) ?>" class="btn tombol-hasil">
+        Ulangi kuis
+    </a>
 
 </div>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+</div>
+
+<?php require __DIR__ . '/../includes/footer.php'; ?>

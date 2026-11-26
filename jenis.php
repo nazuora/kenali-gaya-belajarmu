@@ -5,7 +5,7 @@
   Visual, Auditori, dan Kinestetik.
 */
 
-require __DIR__ . '/config/koneksi.php';
+require __DIR__ . '/../config/koneksi.php';
 
 $daftar_gaya = [
     [
@@ -114,14 +114,8 @@ $daftar_gaya = [
     ]
 ];
 
-// Tentukan tab yang dibuka dari tautan ?gaya=V/A/K
-$gayaDipilih = strtoupper($_GET['gaya'] ?? 'V');
-if (!in_array($gayaDipilih, array_column($daftar_gaya, 'kode'), true)) {
-    $gayaDipilih = $daftar_gaya[0]['kode'];
-}
-
 $judul = 'Jenis Gaya Belajar';
-require __DIR__ . '/includes/header.php';
+require __DIR__ . '/../includes/header.php';
 ?>
 
 <!-- Pengaturan lebar teks pengantar -->
@@ -148,7 +142,7 @@ require __DIR__ . '/includes/header.php';
 
         <?php
             $kodeKecil = strtolower($g['kode']);
-            $statusAktif = ($g['kode'] === $gayaDipilih) ? 'true' : 'false';
+            $statusAktif = ($i === 0) ? 'true' : 'false';
         ?>
 
         <button
@@ -171,7 +165,7 @@ require __DIR__ . '/includes/header.php';
 
     <?php
         $kodeKecil = strtolower($g['kode']);
-        $atributHidden = ($g['kode'] === $gayaDipilih) ? '' : 'hidden';
+        $atributHidden = ($i === 0) ? '' : 'hidden';
     ?>
 
     <article
@@ -291,4 +285,4 @@ require __DIR__ . '/includes/header.php';
     });
 </script>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/../includes/footer.php'; ?>
