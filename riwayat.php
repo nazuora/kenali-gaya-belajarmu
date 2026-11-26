@@ -1,39 +1,17 @@
 <?php
-/*
-  Nama File  : riwayat.php
-  Keterangan : Menampilkan daftar riwayat hasil kuis gaya belajar milik
-  pengguna yang sedang masuk serta menyediakan fitur hapus
-  riwayat hasil kuis.
-*/
-
 // Sambungkan ke database, session, dan fungsi bantu
 require __DIR__ . '/config/koneksi.php';
 
 // Cek apakah pengguna sudah login dan ambil ID-nya
 $sudah_login = !empty($_SESSION['user']);
-if ($sudah_login && isset($_SESSION['user']['id'])) {
-    $id_user = (int)$_SESSION['user']['id'];
-} else {
-    $id_user = 0;
-}
+$id_user     = $sudah_login ? (int)$_SESSION['user']['id'] : 0;
 
 // ==========================================
 // 1. HAPUS RIWAYAT (DELETE)
 // ==========================================
-if (isset($_POST['aksi'])) {
-    $aksi = $_POST['aksi'];
-} else {
-    $aksi = '';
-}
-
-if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') {
-    csrf_periksa(); // Cek token CSRF dari koneksi.php
-
-    if (isset($_POST['id'])) {
-        $id_hasil = (int)$_POST['id'];
-    } else {
-        $id_hasil = 0;
-    }
+if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'hapus') {
+    csrf_periksa(); // Cek token keamanan form
+    $id_hasil = (int)($_POST['id'] ?? 0);
 
     // Hapus hanya jika id hasil cocok dan milik user yang sedang login
     $stmt = mysqli_prepare($db, 'DELETE FROM hasil_kuis WHERE id = ? AND user_id = ?');
@@ -41,7 +19,7 @@ if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') 
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
 
-    // Redirect ke riwayat.php agar tidak kirim ulang form saat di-refresh
+    // Redirect agar tidak kirim ulang form saat di-refresh
     header('Location: ' . url('/riwayat.php'));
     exit;
 }
@@ -52,7 +30,7 @@ if ($sudah_login && $_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') 
 $daftar_riwayat = [];
 if ($sudah_login) {
     $sql = 'SELECT h.id, h.persen_visual, h.persen_auditori, h.persen_kinestetik, h.dibuat_pada,
-                   g.kode, g.nama AS gaya, g.julukan, g.tips
+                   g.kode, g.nama AS gaya, g.julukan, g.pengertian, g.tips
             FROM hasil_kuis h
             JOIN gaya_belajar g ON g.id = h.gaya_utama_id
             WHERE h.user_id = ?
@@ -74,235 +52,110 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <style>
-  .wadah-riwayat {
-    max-width: 720px;
-    margin: 24px auto;
-    padding: 0 16px;
-  }
-  .judul-halaman {
-    margin-bottom: 4px;
-  }
-  .subjudul {
-    color: #6B6080;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-  .kartu-kosong, .kartu-riwayat {
-    background: #FFFFFF;
-    border: 1.5px solid #EDE3F3;
-    border-radius: 16px;
-    margin-bottom: 14px;
-    overflow: hidden;
-  }
-  .kartu-kosong {
-    padding: 28px 20px;
-    text-align: center;
-  }
-  .tombol-buka {
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    cursor: pointer;
-    text-align: left;
-    color: #3A2F52;
-    font: inherit;
-  }
-  .label-gaya {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #2D3142;
-    margin-bottom: 4px;
-  }
-  .tanggal-riwayat {
-    font-size: 0.85rem;
-    color: #6B6080;
-  }
-  .isi-detail {
-    padding: 16px 20px 20px;
-    border-top: 1px solid #EDE3F3;
-  }
-  .tersembunyi {
-    display: none;
-  }
-  .baris-nilai {
-    margin-bottom: 12px;
-  }
-  .teks-nilai {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 4px;
-  }
-  .jalur-bar {
-    height: 10px;
-    background: #EDE3F3;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .isi-bar {
-    height: 100%;
-  }
-  .kotak-tips {
+  /* Hanya tambahan kecil di luar style.css */
+  .kotak-tips-riwayat {
     margin-top: 14px;
     padding: 12px 14px;
-    border-radius: 12px;
-    background: #FFF9F3;
-    border: 1px solid #EDE3F3;
-  }
-  .aksi-tombol {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  /* Mode gelap otomatis sesuai pengaturan perangkat */
-  @media (prefers-color-scheme: dark) {
-    .subjudul, .tanggal-riwayat {
-      color: #BDB3D1;
-    }
-    .kartu-kosong, .kartu-riwayat {
-      background: #2A2540;
-      border-color: #3F3858;
-    }
-    .tombol-buka {
-      color: #F3EEFA;
-    }
-    .label-gaya {
-      color: #F3EEFA;
-    }
-    .isi-detail {
-      border-top-color: #3F3858;
-    }
-    .jalur-bar {
-      background: #3F3858;
-    }
-    .kotak-tips {
-      background: #1E1A2B;
-      border-color: #3F3858;
-    }
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--bg);
   }
 </style>
 
-<div class="wadah-riwayat">
-  <h1 class="judul-halaman">Riwayat Kuismu</h1>
-  <p class="subjudul">Lihat hasil kuis yang pernah kamu kerjakan sebelumnya.</p>
+<div class="narrow" style="max-width:720px">
+  <h1 class="s">Riwayat kuismu</h1>
+  <p class="sub">Lihat hasil kuis yang pernah kamu kerjakan sebelumnya.</p>
 
-  <?php if (!$sudah_login) { ?>
-    <div class="kartu-kosong">
+  <?php if (!$sudah_login): ?>
+    <div class="empty">
       <strong>Kamu belum masuk ke akun.</strong>
       <p>Silakan masuk terlebih dahulu agar riwayat kuis pribadimu bisa ditampilkan.</p>
       <a class="btn" href="<?= e(url('/masuk.php')) ?>">Masuk</a>
     </div>
 
-  <?php } elseif (count($daftar_riwayat) === 0) { ?>
-    <div class="kartu-kosong">
+  <?php elseif (count($daftar_riwayat) === 0): ?>
+    <div class="empty">
       <strong>Belum ada riwayat kuis.</strong>
       <p>Akun ini belum pernah mengerjakan kuis. Yuk coba kerjakan kuis pertamamu!</p>
-      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai Kuis</a>
+      <a class="btn" href="<?= e(url('/kuis.php')) ?>">Mulai kuis</a>
     </div>
 
-  <?php } else { ?>
-    <?php foreach ($daftar_riwayat as $item) { ?>
-      <?php
-        // Tentukan warna sesuai kode gaya belajar (V = Visual, A = Auditori, K = Kinestetik)
-        $kode = $item['kode'];
-        if ($kode === 'A') {
-            $warna_utama = '#FF9F7A';
-            $warna_lembut = '#FFE9DE';
-        } elseif ($kode === 'K') {
-            $warna_utama = '#5CCB9C';
-            $warna_lembut = '#DDF6EA';
-        } else {
-            $warna_utama = '#8B7CF0';
-            $warna_lembut = '#ECE8FF';
-        }
-      ?>
-      <div class="kartu-riwayat">
+  <?php else: ?>
+    <?php foreach ($daftar_riwayat as $item): ?>
+      <div class="item">
         <!-- Klik tombol ini untuk membuka/menutup detail hasil -->
-        <button type="button" class="tombol-buka" aria-expanded="false">
-          <div>
-            <span class="label-gaya" style="background: <?= e($warna_lembut) ?>; border: 1.5px solid <?= e($warna_utama) ?>;">
-              <?= e($item['gaya']) ?> - <?= e($item['julukan']) ?>
-            </span>
-            <div class="tanggal-riwayat"><?= e(tanggal_id($item['dibuat_pada'])) ?></div>
-          </div>
-          <span aria-hidden="true">▾</span>
+        <button type="button" class="head" aria-expanded="false">
+          <span class="pill"><?= e($item['gaya']) ?> - <?= e($item['julukan']) ?></span>
+          <span class="date"><?= e(tanggal_id($item['dibuat_pada'])) ?></span>
+          <span class="chev" aria-hidden="true">&#9662;</span>
         </button>
 
-        <!-- Isi detail hasil kuis -->
-        <div class="isi-detail tersembunyi">
-          <p><strong>Gaya Utama:</strong> <?= e($item['gaya']) ?> (<?= e($item['julukan']) ?>)</p>
+        <!-- Detail hasil kuis (tersembunyi sampai tombol diklik) -->
+        <div class="body hidden">
+          <p><strong>Gaya belajar utamamu:</strong> <?= e($item['gaya']) ?> (<?= e($item['julukan']) ?>)</p>
+          <p><?= e($item['pengertian']) ?></p>
 
-          <div class="baris-nilai">
-            <div class="teks-nilai">
+          <div class="row">
+            <div class="lab">
               <span>Visual</span>
-              <span><?= e((int)$item['persen_visual']) ?>%</span>
+              <span><?= (int)$item['persen_visual'] ?>%</span>
             </div>
-            <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= e((int)$item['persen_visual']) ?>%; background: #8B7CF0;"></div>
+            <div class="track">
+              <div style="width:<?= (int)$item['persen_visual'] ?>%"></div>
             </div>
           </div>
 
-          <div class="baris-nilai">
-            <div class="teks-nilai">
+          <div class="row">
+            <div class="lab">
               <span>Auditori</span>
-              <span><?= e((int)$item['persen_auditori']) ?>%</span>
+              <span><?= (int)$item['persen_auditori'] ?>%</span>
             </div>
-            <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= e((int)$item['persen_auditori']) ?>%; background: #FF9F7A;"></div>
+            <div class="track">
+              <div style="width:<?= (int)$item['persen_auditori'] ?>%"></div>
             </div>
           </div>
 
-          <div class="baris-nilai">
-            <div class="teks-nilai">
+          <div class="row">
+            <div class="lab">
               <span>Kinestetik</span>
-              <span><?= e((int)$item['persen_kinestetik']) ?>%</span>
+              <span><?= (int)$item['persen_kinestetik'] ?>%</span>
             </div>
-            <div class="jalur-bar">
-              <div class="isi-bar" style="width: <?= e((int)$item['persen_kinestetik']) ?>%; background: #5CCB9C;"></div>
+            <div class="track">
+              <div style="width:<?= (int)$item['persen_kinestetik'] ?>%"></div>
             </div>
           </div>
 
-          <div class="kotak-tips">
-            <strong>Tips Belajar:</strong>
-            <p style="margin: 6px 0 0;"><?= nl2br(e($item['tips'])) ?></p>
+          <div class="kotak-tips-riwayat">
+            <strong>Tips belajar untukmu:</strong>
+            <p style="margin:6px 0 0;"><?= nl2br(e($item['tips'])) ?></p>
           </div>
 
-          <div class="aksi-tombol">
-            <a class="btn ghost" href="<?= e(url('/hasil.php?id=' . (int)$item['id'])) ?>">Lihat Halaman Hasil</a>
+          <div class="actions" style="justify-content:flex-start; align-items:center;">
+            <a class="btn ghost sm" href="<?= e(url('/hasil.php?id=' . (int)$item['id'])) ?>">Lihat halaman hasil</a>
 
-            <form method="post" style="margin: 0;">
+            <form method="post" style="margin:0;">
               <?= csrf_field() ?>
               <input type="hidden" name="aksi" value="hapus">
-              <input type="hidden" name="id" value="<?= e((int)$item['id']) ?>">
-              <button type="button" class="btn red tombol-hapus">Hapus Hasil</button>
+              <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
+              <button type="button" class="btn red sm tombol-hapus">Hapus hasil</button>
             </form>
           </div>
         </div>
       </div>
-    <?php } ?>
-  <?php } ?>
+    <?php endforeach; ?>
+  <?php endif; ?>
 </div>
 
 <script>
   // Buka atau tutup detail hasil saat tombol panah/header diklik
-  document.querySelectorAll('.tombol-buka').forEach(function (tombol) {
+  document.querySelectorAll('.head').forEach(function (tombol) {
     tombol.addEventListener('click', function () {
-      const kartu = tombol.closest('.kartu-riwayat');
-      const detail = kartu.querySelector('.isi-detail');
-      const sedangBuka = !detail.classList.contains('tersembunyi');
+      const item = tombol.closest('.item');
+      const detail = item.querySelector('.body');
+      const sedangBuka = tombol.getAttribute('aria-expanded') === 'true';
 
-      detail.classList.toggle('tersembunyi', sedangBuka);
       tombol.setAttribute('aria-expanded', String(!sedangBuka));
+      detail.classList.toggle('hidden', sedangBuka);
     });
   });
 
