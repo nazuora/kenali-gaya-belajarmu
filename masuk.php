@@ -66,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $hasil = $stmt->get_result();
             $user = $hasil->fetch_assoc();
+            $stmt->close();
 
             if ($user && password_verify($sandi, $user['password_hash'])) {
                 session_regenerate_id(true);
@@ -126,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Untuk PHP di bawah 8.1, gagal simpan tidak melempar error, jadi dilempar manual
                 $stmt->execute();
                 $idBaru = (int)$db->insert_id;
+                $stmt->close();
 
                 session_regenerate_id(true);
                 $_SESSION['user'] = [
@@ -138,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: ' . url('/kuis.php'));
                 exit;
             } catch (mysqli_sql_exception $ex) {
+                $stmt->close();
                 if ($ex->getCode() === 1062) {
                     $err['email'] = 'Email ini sudah terdaftar. Silakan masuk.';
                 } else {
@@ -160,15 +163,45 @@ if ($tab === 'masuk') {
     $kelasPanelDaftar = '';
 }
 
-$errMasukEmail = isset($err['email']) && $tab === 'masuk' ? $err['email'] : '';
-$errMasukSandi = isset($err['sandi']) && $tab === 'masuk' ? $err['sandi'] : '';
-$errDaftarNama = isset($err['nama']) && $tab === 'daftar' ? $err['nama'] : '';
-$errDaftarEmail = isset($err['email']) && $tab === 'daftar' ? $err['email'] : '';
-$errDaftarSandi = isset($err['sandi']) && $tab === 'daftar' ? $err['sandi'] : '';
-$errDaftarUlang = isset($err['ulang']) && $tab === 'daftar' ? $err['ulang'] : '';
+$errMasukEmail = '';
+if (isset($err['email']) && $tab === 'masuk') {
+    $errMasukEmail = $err['email'];
+}
 
-$nilaiEmailMasuk = ($tab === 'masuk') ? $nilai['email'] : '';
-$nilaiEmailDaftar = ($tab === 'daftar') ? $nilai['email'] : '';
+$errMasukSandi = '';
+if (isset($err['sandi']) && $tab === 'masuk') {
+    $errMasukSandi = $err['sandi'];
+}
+
+$errDaftarNama = '';
+if (isset($err['nama']) && $tab === 'daftar') {
+    $errDaftarNama = $err['nama'];
+}
+
+$errDaftarEmail = '';
+if (isset($err['email']) && $tab === 'daftar') {
+    $errDaftarEmail = $err['email'];
+}
+
+$errDaftarSandi = '';
+if (isset($err['sandi']) && $tab === 'daftar') {
+    $errDaftarSandi = $err['sandi'];
+}
+
+$errDaftarUlang = '';
+if (isset($err['ulang']) && $tab === 'daftar') {
+    $errDaftarUlang = $err['ulang'];
+}
+
+$nilaiEmailMasuk = '';
+if ($tab === 'masuk') {
+    $nilaiEmailMasuk = $nilai['email'];
+}
+
+$nilaiEmailDaftar = '';
+if ($tab === 'daftar') {
+    $nilaiEmailDaftar = $nilai['email'];
+}
 
 $judul = 'Masuk';
 require __DIR__ . '/includes/header.php';
