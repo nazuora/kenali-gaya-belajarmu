@@ -182,6 +182,19 @@ if ($resP) {
     $resP->free();
 }
 
+$resMax = $db->query('SELECT COALESCE(MAX(urutan), 0) FROM pertanyaan');
+if ($resMax) {
+    $barisMax = $resMax->fetch_row();
+    if (isset($barisMax[0])) {
+        $maxUrutan = (int)$barisMax[0];
+    } else {
+        $maxUrutan = 0;
+    }
+    $resMax->free();
+} else {
+    $maxUrutan = 0;
+}
+
 if ($editData) {
     $judulForm = 'Ubah Pertanyaan #' . (int)$editData['urutan'];
     $nilaiIdForm = (int)$editData['id'];
@@ -191,7 +204,7 @@ if ($editData) {
     $judulForm = 'Tambah Pertanyaan Baru';
     $nilaiIdForm = 0;
     $nilaiTeksForm = '';
-    $nilaiUrutanForm = count($pertanyaanList) + 1;
+    $nilaiUrutanForm = $maxUrutan + 1;
 }
 
 $judul = 'Kelola Pertanyaan Kuis';
