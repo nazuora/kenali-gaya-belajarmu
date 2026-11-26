@@ -238,3 +238,11 @@ require __DIR__ . '/includes/header.php'; //menginclude header
 
       formKirim.submit(); //mengirim form kirim ke kuis.php
     };
+
+    tampilkanSoal(); //memanggil fungsi tampilkan soal yang tadi hanya didefinisikan supaya fungsinya berjalan
+  </script>
+
+<?php endif; ?>
+</div>
+
+<?php require __DIR__ . '/includes/footer.php'; ?> <!--memasukkan footer-->
