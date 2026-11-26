@@ -209,20 +209,32 @@ require __DIR__ . '/includes/header.php'; //menginclude header
       }
     }
       
-
+    //mengatur fungsi tombol kembali dan ngubah tampilan ..../....(cth 1/15) mengikuti nomor soal 
     ambilElemen('tombol-kembali').onclick = function() {   
       if (indeksAktif > 0) {
         indeksAktif--;
         tampilkanSoal();
       }
     };
-    //mengatur fungsi tombol kembali dan ngubah tampilan ..../....(cth 1/15) mengikuti nomor soal 
     
+    //mengatur tombol lanjut sekaligus memeriksa apakah pengguna masih punya soal berikutnya atau tidak
     ambilElemen('tombol-lanjut').onclick = function() {
-      if (indeksAktif < dataSoal.length - 1) {
-        indeksAktif++;
+      if (indeksAktif < dataSoal.length - 1) { 
+        indeksAktif++; //kalau ada maka tampilkan soal selanjutnya 
         tampilkanSoal();
         return;
       }
+    const formKirim = ambilElemen('form-kirim-jawaban'); //manggil form kirim jawaban dan memasukkan fungsi csrf kedalamnya
+      formKirim.innerHTML = '<?= csrf_field() ?>';
 
-    
+      //memasukkan jawaban pengguna ke dalam form lalu mengirmnya ke file kuis.php untuk diproses
+     dataSoal.forEach(function(soal, nomorUrut) { //melaukan perulangan untuk semua soal 
+        const inputTersembunyi = document.createElement('input'); 
+        inputTersembunyi.type = 'hidden';
+        inputTersembunyi.name = 'jawaban[' + soal.id + ']';
+        inputTersembunyi.value = pilihanUser[nomorUrut]; //mengisi jawaban user dan dimasukkan ke input tersembunyi
+        formKirim.appendChild(inputTersembunyi); //memasukkan input tersembunyi ke form kirim
+      });
+
+      formKirim.submit(); //mengirim form kirim ke kuis.php
+    };
